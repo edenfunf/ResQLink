@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/generated-artifact.schema.json",
+  "title": "GeneratedArtifact (Output)",
+  "description": "A rule-based generated rescue component. Returned by GET /v1/artifacts/{id}.",
+  "type": "object",
+  "required": ["id", "incident_id", "artifact_type", "content", "status", "risk_level"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "incident_id": { "type": "string", "format": "uuid" },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "microsite_config",
+        "damage_report_form",
+        "volunteer_form",
+        "supply_form",
+        "map_bundle",
+        "public_notice_draft"
+      ]
+    },
+    "title": { "type": ["string", "null"] },
+    "content": {
+      "type": "object",
+      "description": "生成內容（表單欄位 / 區塊 / 地圖設定 / 公告文字），結構依 artifact_type 而定。"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending_review", "approved", "rejected", "archived"],
+      "description": "預設 pending_review；僅 approved 會出現在 Public Preview。"
+    },
+    "risk_level": { "type": "string", "enum": ["low", "medium", "high"] },
+    "created_by": { "type": "string", "examples": ["system"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

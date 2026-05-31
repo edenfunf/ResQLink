@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  color-scheme: light;
+  --paper: #f4f1ec;
+  --card: #fbfaf7;
+  --ink: #1b1a17;
+  --ink-2: #46423b;
+  --muted: #8a8275;
+  --accent: #8c3b2e;
+  --accent-700: #6f2f24;
+  --line: #e7e1d7;
+  --line-2: #d9d1c3;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: rgba(140, 59, 46, 0.16);
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: Georgia, "Songti TC", "Noto Serif TC", "Noto Serif CJK TC",
+      "Source Han Serif TC", "PMingLiU", serif;
+    letter-spacing: 0;
+  }
+
+  .db-card {
+    @apply rounded-xl border;
+    background-color: var(--card);
+    border-color: var(--line);
+  }
+  .db-card-hover {
+    @apply transition duration-200;
+  }
+  .db-card-hover:hover {
+    border-color: var(--line-2);
+    box-shadow: 0 14px 40px -28px rgba(27, 26, 23, 0.45);
+  }
+
+  .db-eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.2em];
+    color: var(--accent);
+  }
+  .db-section-title {
+    @apply text-lg font-semibold tracking-tight;
+    color: var(--ink);
+    font-family: Georgia, "Songti TC", "Noto Serif TC", "Noto Serif CJK TC",
+      "Source Han Serif TC", "PMingLiU", serif;
+  }
+
+  .db-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none;
+  }
+  .db-btn-primary {
+    background-color: var(--ink);
+    color: #f4f1ec;
+  }
+  .db-btn-primary:hover {
+    background-color: #2c2a25;
+  }
+  .db-btn-accent {
+    background-color: var(--accent);
+    color: #f8f4ee;
+  }
+  .db-btn-accent:hover {
+    background-color: var(--accent-700);
+  }
+  .db-btn-ghost {
+    @apply border;
+    background-color: var(--card);
+    color: var(--ink-2);
+    border-color: var(--line);
+  }
+  .db-btn-ghost:hover {
+    background-color: #f0ebe2;
+    color: var(--ink);
+  }
+  .db-btn-emerald {
+    background-color: #566246;
+    color: #f4f1ec;
+  }
+  .db-btn-emerald:hover {
+    background-color: #48533a;
+  }
+  .db-btn-rose {
+    background-color: #8a4a3a;
+    color: #f4f1ec;
+  }
+  .db-btn-rose:hover {
+    background-color: #743c2f;
+  }
+  .db-btn:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .db-label {
+    @apply block text-sm font-medium;
+    color: var(--ink-2);
+  }
+  .db-input {
+    @apply mt-1 w-full rounded-lg px-3 py-2 text-sm transition;
+    color: var(--ink);
+    background-color: #ffffff;
+    border: 1px solid var(--line);
+  }
+  .db-input::placeholder {
+    color: #a89e8e;
+  }
+  .db-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(140, 59, 46, 0.1);
+  }
+
+  .db-chip {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+    color: #5b554a;
+    background-color: #efeae0;
+  }
+  .db-divider {
+    @apply h-px w-full;
+    background: linear-gradient(to right, transparent, var(--line), transparent);
+  }
+}
+
+/* Keep Leaflet panes below the app header. */
+.leaflet-container {
+  z-index: 0;
+  font: inherit;
+}

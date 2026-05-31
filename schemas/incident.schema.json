@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/incident.schema.json",
+  "title": "Incident (Output)",
+  "description": "Standardized disaster incident. Returned by GET /v1/incidents/{id}.",
+  "type": "object",
+  "required": ["id", "slug", "title", "scenario_type", "severity", "status"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "slug": { "type": "string", "description": "由 title 產生，衝突時加短 UUID" },
+    "title": { "type": "string" },
+    "scenario_type": { "type": "string", "examples": ["barrier_lake"] },
+    "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "location": {
+      "type": "object",
+      "properties": {
+        "county": { "type": ["string", "null"] },
+        "town": { "type": ["string", "null"] },
+        "river": { "type": ["string", "null"] },
+        "lat": { "type": ["number", "null"] },
+        "lon": { "type": ["number", "null"] }
+      }
+    },
+    "aoi": { "type": ["object", "null"], "description": "GeoJSON Geometry" },
+    "status": { "type": "string", "enum": ["draft", "active", "archived"] },
+    "source_refs": { "type": "array", "items": { "type": "object" } },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}

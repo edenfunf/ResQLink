@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/reports-geojson.schema.json",
+  "title": "ReportsGeoJSON (Output)",
+  "description": "GeoJSON FeatureCollection of geolocated disaster reports. Returned by GET /v1/incidents/{id}/reports.geojson. PII is never included in properties.",
+  "type": "object",
+  "required": ["type", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "const": "Point" },
+              "coordinates": {
+                "type": "array",
+                "description": "[lon, lat] 依 GeoJSON 慣例（經度在前）。",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "type": "number" }
+              }
+            }
+          },
+          "properties": {
+            "type": "object",
+            "description": "不包含 reporter_name / reporter_contact（去 PII）。",
+            "properties": {
+              "report_id": { "type": "string", "format": "uuid" },
+              "need_type": { "type": "string" },
+              "severity": { "type": "string" },
+              "status": { "type": "string" },
+              "verification_status": { "type": "string" },
+              "address": { "type": ["string", "null"] },
+              "created_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

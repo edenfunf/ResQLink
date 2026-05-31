@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/disaster-report.schema.json",
+  "title": "DisasterReport (Input + Output)",
+  "description": "Citizen disaster report. Input: POST /v1/incidents/{id}/reports. Output: GET /v1/reports/{id}. lat/lon must be supplied together.",
+  "type": "object",
+  "required": ["need_type", "description"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "readOnly": true },
+    "incident_id": { "type": "string", "format": "uuid", "readOnly": true },
+    "reporter_name": {
+      "type": ["string", "null"],
+      "description": "PII。目前明文儲存；production 需加密 / 遮罩 / 權限控管。"
+    },
+    "reporter_contact": {
+      "type": ["string", "null"],
+      "description": "PII。不會出現在列表 API 與 GeoJSON 輸出。"
+    },
+    "need_type": {
+      "type": "string",
+      "enum": ["flooding", "mud_removal", "road_blocked", "trapped_person", "medical_need", "supply_need", "other"]
+    },
+    "description": { "type": "string", "minLength": 1 },
+    "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium" },
+    "lat": { "type": ["number", "null"], "description": "與 lon 必須成對，否則回 422。" },
+    "lon": { "type": ["number", "null"], "description": "與 lat 必須成對，否則回 422。" },
+    "address": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["new", "triaged", "in_progress", "resolved", "archived"], "readOnly": true },
+    "verification_status": { "type": "string", "enum": ["unverified", "verified", "rejected"], "readOnly": true },
+    "raw_payload": { "type": "object", "description": "完整保留的原始提交資料。", "readOnly": true },
+    "created_at": { "type": "string", "format": "date-time", "readOnly": true },
+    "updated_at": { "type": "string", "format": "date-time", "readOnly": true }
+  },
+  "examples": [
+    {
+      "reporter_name": "王先生",
+      "reporter_contact": "0912345678",
+      "need_type": "mud_removal",
+      "description": "住家一樓淤泥約 30 公分，需要協助清理",
+      "severity": "high",
+      "lat": 23.665,
+      "lon": 121.421,
+      "address": "花蓮縣光復鄉某路段"
+    }
+  ]
+}

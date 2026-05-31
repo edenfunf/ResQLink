@@ -1,0 +1,32 @@
+{
+  "source": "manual",
+  "event_type": "barrier_lake_alert",
+  "title": "馬太鞍溪堰塞湖警戒事件",
+  "severity": "high",
+  "location": {
+    "county": "花蓮縣",
+    "town": "光復鄉",
+    "river": "馬太鞍溪",
+    "lat": 23.66,
+    "lon": 121.42
+  },
+  "aoi": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [121.40, 23.65],
+        [121.45, 23.65],
+        [121.45, 23.69],
+        [121.40, 23.69],
+        [121.40, 23.65]
+      ]
+    ]
+  },
+  "source_refs": [
+    {
+      "source_name": "manual",
+      "source_ref": "mock://mataian-alert-001",
+      "fetched_at": "2026-05-31T08:00:00+08:00"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [121.421, 23.665]
+      },
+      "properties": {
+        "report_id": "00000000-0000-0000-0000-000000000001",
+        "need_type": "mud_removal",
+        "severity": "high",
+        "status": "new",
+        "verification_status": "unverified",
+        "address": "花蓮縣光復鄉某路段",
+        "created_at": "2026-05-31T08:00:00+00:00"
+      }
+    }
+  ]
+}

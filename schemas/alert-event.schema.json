@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/alert-event.schema.json",
+  "title": "AlertEvent (Input)",
+  "description": "POST /v1/events/alerts request body: an official alert or manual entry that becomes a standardized Incident.",
+  "type": "object",
+  "required": ["source", "event_type", "title", "severity"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "資料來源，例如 manual / official",
+      "examples": ["manual"]
+    },
+    "event_type": {
+      "type": "string",
+      "description": "事件類型。目前僅支援 barrier_lake_alert。",
+      "enum": ["barrier_lake_alert"]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "location": {
+      "type": "object",
+      "properties": {
+        "county": { "type": ["string", "null"] },
+        "town": { "type": ["string", "null"] },
+        "river": { "type": ["string", "null"] },
+        "lat": { "type": ["number", "null"] },
+        "lon": { "type": ["number", "null"] }
+      }
+    },
+    "aoi": {
+      "description": "影響範圍 GeoJSON Geometry（Polygon）。",
+      "type": ["object", "null"]
+    },
+    "source_refs": {
+      "type": "array",
+      "description": "來源出處（保留給未來真實外部 API connector）。",
+      "items": {
+        "type": "object",
+        "required": ["source_name", "source_ref"],
+        "properties": {
+          "source_name": { "type": "string" },
+          "source_ref": { "type": "string" },
+          "fetched_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "source": "manual",
+      "event_type": "barrier_lake_alert",
+      "title": "馬太鞍溪堰塞湖警戒事件",
+      "severity": "high",
+      "location": { "county": "花蓮縣", "town": "光復鄉", "river": "馬太鞍溪", "lat": 23.66, "lon": 121.42 },
+      "aoi": { "type": "Polygon", "coordinates": [[[121.40, 23.65], [121.45, 23.65], [121.45, 23.69], [121.40, 23.69], [121.40, 23.65]]] },
+      "source_refs": [{ "source_name": "manual", "source_ref": "mock://mataian-alert-001", "fetched_at": "2026-05-31T08:00:00+08:00" }]
+    }
+  ]
+}

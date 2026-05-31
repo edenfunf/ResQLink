@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/review-task.schema.json",
+  "title": "ReviewTask (Output)",
+  "description": "A human review task gating publication of an artifact. Returned by GET /v1/reviews.",
+  "type": "object",
+  "required": ["id", "incident_id", "artifact_id", "review_type", "status", "risk_level"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "incident_id": { "type": "string", "format": "uuid" },
+    "artifact_id": { "type": "string", "format": "uuid" },
+    "review_type": {
+      "type": "string",
+      "enum": ["artifact_review", "risk_review", "publication_review"]
+    },
+    "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+    "risk_level": { "type": "string", "enum": ["low", "medium", "high"] },
+    "reviewer_note": { "type": ["string", "null"] },
+    "decision": { "type": ["string", "null"], "enum": ["approve", "reject", null] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "reviewed_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

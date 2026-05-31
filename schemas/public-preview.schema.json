@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://disasterblock.dev/schemas/public-preview.schema.json",
+  "title": "PublicPreview (Output)",
+  "description": "Public rescue-portal preview. Returned by GET /v1/public/preview/{slug}. Exposes ONLY approved artifacts; never review tasks or reporter PII.",
+  "type": "object",
+  "required": ["incident", "artifacts", "public_endpoints"],
+  "properties": {
+    "incident": {
+      "type": "object",
+      "required": ["id", "slug", "title", "scenario_type", "severity", "status"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "slug": { "type": "string" },
+        "title": { "type": "string" },
+        "scenario_type": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "location": { "type": "object" },
+        "status": { "type": "string", "enum": ["draft", "active", "archived"] }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "description": "僅 status = approved 的 artifacts。",
+      "items": {
+        "type": "object",
+        "required": ["id", "artifact_type", "content", "risk_level"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "artifact_type": { "type": "string" },
+          "title": { "type": ["string", "null"] },
+          "content": { "type": "object" },
+          "risk_level": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "public_endpoints": {
+      "type": "object",
+      "required": ["reports_geojson", "submit_report"],
+      "properties": {
+        "reports_geojson": { "type": "string" },
+        "submit_report": { "type": "string" }
+      }
+    }
+  }
+}

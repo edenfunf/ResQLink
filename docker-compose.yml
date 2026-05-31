@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16
+    container_name: disasterblock-db
+    environment:
+      POSTGRES_USER: disasterblock
+      POSTGRES_PASSWORD: disasterblock
+      POSTGRES_DB: disasterblock
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U disasterblock -d disasterblock"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./apps/api
+    container_name: disasterblock-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://disasterblock:disasterblock@db:5432/disasterblock
+      APP_NAME: DisasterBlock API
+      APP_VERSION: 0.1.0
+      ENVIRONMENT: development
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        # NEXT_PUBLIC_* must be inlined at build time for the client bundle.
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    container_name: disasterblock-web
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
