@@ -90,11 +90,21 @@ cp .env.example .env
 
 ## 載入展示資料
 
+豐富版（建議，多筆完整事件）：
+
+```bash
+python client/seed_demo.py
+```
+
+會建立四筆不同災別的事件（堰塞湖／地震／颱風／水災），每筆生成全部救災元件，並灌入多筆民眾通報（含座標）、物資與志工登記、派工，讓每個成果後台與地圖都飽滿。若前端用 3001，前面加上 `WEB_BASE_URL=http://localhost:3001`。
+
+精簡版（單一事件、示範審核流程）：
+
 ```bash
 bash client/seed_demo.sh
 ```
 
-會建立一筆事件、生成並審核部分元件、送出兩筆通報，並印出各頁網址。若使用 3001，前面加上 `WEB_BASE_URL=http://localhost:3001`。
+> **Demo 模式**：預設 `DEMO_AUTO_APPROVE=true`，生成的元件會**直接上線**（略過人工審核），因此公開網站與各成果前台一建立就有內容。要恢復人工審核閘門，在 `.env` 設 `DEMO_AUTO_APPROVE=false` 後重啟。
 
 ## 測試
 

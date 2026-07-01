@@ -57,10 +57,18 @@
       "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f\\\\\"{i['key']:14} admin={i['admin']['url']:28} front={i['front']['url']}\\\\\"\\) for i in d['items']]\")",
       "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/incidents/__TRACKED_VAR__/site)",
       "Bash(curl -s http://localhost:3001/incidents/__TRACKED_VAR__/site)",
-      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);ts=[a['artifact_type'] for a in d['items']];site=[t for t in ts if t in {'microsite_config','public_notice_draft','damage_report_form','map_bundle','evacuation_guide','faq','sos_form','medical_need_form','vulnerable_care_list','shelter_map','hazard_zone_layer'}];print\\('site artifacts:', len\\(site\\), sorted\\(set\\(site\\)\\)\\)\")"
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);ts=[a['artifact_type'] for a in d['items']];site=[t for t in ts if t in {'microsite_config','public_notice_draft','damage_report_form','map_bundle','evacuation_guide','faq','sos_form','medical_need_form','vulnerable_care_list','shelter_map','hazard_zone_layer'}];print\\('site artifacts:', len\\(site\\), sorted\\(set\\(site\\)\\)\\)\")",
+      "Bash(cd /c/Users/Eden/Desktop/disasterblock *)",
+      "Bash(WEB_BASE_URL=http://localhost:3001 python client/seed_demo.py)",
+      "Bash(curl -s \"http://localhost:8000/v1/public/preview/馬太鞍溪堰塞湖溢流警戒\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);a=d['artifacts'];r=d['reports'];print\\(f\\\\\"artifacts approved {a['approved']}/{a['total']} | reports {r['total']} \\({r['geolocated']} on map\\)\\\\\"\\)\")",
+      "Bash(python -)",
+      "Bash(curl -s \"http://localhost:8000/v1/incidents?limit=50\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('incidents:', d['total']\\)\")"
     ],
     "additionalDirectories": [
-      "c:\\Users\\Eden\\.claude\\projects\\c--Users-Eden-Desktop-disasterblock\\memory"
+      "c:\\Users\\Eden\\.claude\\projects\\c--Users-Eden-Desktop-disasterblock\\memory",
+      "c:\\Users\\Eden\\Desktop\\disasterblock\\apps\\api\\app\\services"
     ]
   }
 }

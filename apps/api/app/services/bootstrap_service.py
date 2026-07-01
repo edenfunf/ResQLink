@@ -13,6 +13,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.models import GeneratedArtifact, Incident, ReviewTask
 from app.modules import ModuleNotExecutableError, ModuleNotFoundError, registry
 from app.modules.base import ModuleSpec
@@ -112,6 +113,12 @@ def bootstrap_incident(
 
     ai_texts = ai_agent.draft_texts(incident) if (use_ai and to_create) else {}
 
+    # Demo mode publishes generated content immediately so the public site and
+    # deliverable fronts have something to show without a manual approval step.
+    auto = settings.DEMO_AUTO_APPROVE
+    artifact_status = "approved" if auto else "pending_review"
+    review_status = "approved" if auto else "pending"
+
     created_any = False
     for spec in to_create:
         risk_level = spec.risk_for(incident.severity)
@@ -122,7 +129,7 @@ def bootstrap_incident(
             artifact_type=spec.id,
             title=spec.name,
             content=content,
-            status="pending_review",
+            status=artifact_status,
             risk_level=risk_level,
             created_by="ai_agent" if ai_applied else "system",
         )
@@ -134,7 +141,7 @@ def bootstrap_incident(
             artifact_id=artifact.id,
             review_type=spec.review_type_for(risk_level),
             risk_level=risk_level,
-            status="pending",
+            status=review_status,
         )
         db.add(review_task)
         created_any = True

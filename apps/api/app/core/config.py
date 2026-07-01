@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
 
+    # Demo mode: generated artifacts go live immediately (auto-approved) so the
+    # public site / deliverable fronts show content the moment they are created,
+    # without a manual review step. Set to false to restore the human review gate.
+    DEMO_AUTO_APPROVE: bool = True
+
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
 

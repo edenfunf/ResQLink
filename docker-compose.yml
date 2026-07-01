@@ -24,6 +24,8 @@ services:
       APP_NAME: 災鏈 ResQLink API
       APP_VERSION: 0.1.0
       ENVIRONMENT: development
+      # Demo mode: generated content goes live immediately (skip manual review).
+      DEMO_AUTO_APPROVE: ${DEMO_AUTO_APPROVE:-true}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       CWA_API_KEY: ${CWA_API_KEY:-}
