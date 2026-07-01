@@ -17,6 +17,7 @@ from app.schemas.report import (
     ReportNeedType,
     ReportSeverity,
     ReportStatus,
+    VerificationRequest,
 )
 from app.services import report_service
 from app.services.report_service import (
@@ -113,6 +114,45 @@ def get_report(
     db: Session = Depends(get_db),
 ) -> DisasterReportDetail:
     report = report_service.get_report(db, report_id)
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report not found",
+        )
+    return DisasterReportDetail.model_validate(report)
+
+
+@router.post(
+    "/reports/{report_id}/retriage",
+    response_model=DisasterReportDetail,
+    summary="Recompute a report's triage priority (module: report_auto_classify)",
+)
+def retriage_report(
+    report_id: uuid.UUID,
+    db: Session = Depends(get_db),
+) -> DisasterReportDetail:
+    report = report_service.retriage_report(db, report_id)
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report not found",
+        )
+    return DisasterReportDetail.model_validate(report)
+
+
+@router.post(
+    "/reports/{report_id}/verification",
+    response_model=DisasterReportDetail,
+    summary="Set a report's verification status (verify / reject)",
+)
+def set_verification(
+    report_id: uuid.UUID,
+    payload: VerificationRequest,
+    db: Session = Depends(get_db),
+) -> DisasterReportDetail:
+    report = report_service.set_verification(
+        db, report_id, payload.verification_status.value, payload.note
+    )
     if report is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

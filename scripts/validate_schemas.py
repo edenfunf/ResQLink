@@ -27,6 +27,10 @@ SAMPLE_MAP = [
     ("damage-report.json", "disaster-report.schema.json", True),
     ("damage-report-no-location.json", "disaster-report.schema.json", True),
     ("reports.geojson", "reports-geojson.schema.json", False),
+    ("resource-supply.json", "resource-offer.schema.json", True),
+    ("resource-volunteer.json", "resource-offer.schema.json", True),
+    ("assignment.json", "assignment.schema.json", True),
+    ("publication.json", "publication.schema.json", True),
 ]
 
 failures = 0

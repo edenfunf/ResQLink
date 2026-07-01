@@ -1,4 +1,4 @@
-# DisasterBlock — convenience targets.
+# 災鏈 ResQLink — convenience targets.
 # Each target maps to a plain docker compose / bash command (see README for the
 # no-make equivalents).
 

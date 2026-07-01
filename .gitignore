@@ -25,6 +25,8 @@ docker-compose.override.yml
 *.key
 secrets.*
 .secrets/
+secrets/*
+!secrets/README.md
 
 # Editor / OS
 .vscode/

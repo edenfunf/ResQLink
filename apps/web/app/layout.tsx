@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DisasterBlock",
+  title: "災鏈 ResQLink",
   description: "堰塞湖災害通報與救災入口生成元件",
 };
 

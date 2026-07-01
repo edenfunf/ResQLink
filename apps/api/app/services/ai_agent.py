@@ -89,6 +89,53 @@ def _draft_damage_desc(incident: Incident) -> str | None:
         return None
 
 
+_VALID_SCENARIOS = {"barrier_lake", "earthquake", "typhoon", "flood", "generic"}
+_VALID_SEVERITY = {"low", "medium", "high", "critical"}
+
+
+def parse_intent(message: str) -> dict | None:
+    """Extract structured incident fields from a free-text disaster description.
+    Returns None when the AI layer is disabled or the call fails, so callers fall
+    back to a keyword heuristic. Only validated fields are returned."""
+    if not is_enabled():
+        return None
+    try:
+        content = _chat(
+            [
+                {
+                    "role": "system",
+                    "content": "你是台灣防災通報分析助理，將使用者的災害描述抽取為結構化欄位，只輸出 JSON。",
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"災害描述：「{message}」。請輸出 JSON："
+                        '{"scenario_type": 從 [barrier_lake, earthquake, typhoon, flood, generic] 擇一, '
+                        '"title": 簡短事件標題, "severity": 從 [low, medium, high, critical] 擇一, '
+                        '"county": 縣市或 null, "town": 鄉鎮或 null, "river": 河川或 null}。'
+                        "無法判斷的欄位填 null，不要捏造地名。"
+                    ),
+                },
+            ],
+            json_mode=True,
+        )
+        data = json.loads(content)
+    except Exception:
+        return None
+
+    scenario = data.get("scenario_type")
+    severity = data.get("severity")
+    out = {
+        "scenario_type": scenario if scenario in _VALID_SCENARIOS else None,
+        "title": (str(data.get("title")).strip() if data.get("title") else None),
+        "severity": severity if severity in _VALID_SEVERITY else None,
+        "county": (str(data.get("county")).strip() if data.get("county") else None),
+        "town": (str(data.get("town")).strip() if data.get("town") else None),
+        "river": (str(data.get("river")).strip() if data.get("river") else None),
+    }
+    return out
+
+
 def draft_texts(incident: Incident) -> dict:
     """Draft the free-text fields in parallel. Returns only the fields that
     succeeded; callers fall back to rule-based content for the rest."""

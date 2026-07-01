@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.modules import ModuleNotExecutableError, ModuleNotFoundError
 from app.schemas.bootstrap import (
     BootstrapArtifactSummary,
     BootstrapResponse,
@@ -26,17 +27,30 @@ router = APIRouter(prefix="/v1/bootstrap", tags=["bootstrap"])
 def bootstrap_incident(
     incident_id: uuid.UUID,
     use_ai: bool = Query(default=False),
+    module_ids: list[str] | None = Query(
+        default=None,
+        description="要生成的模組 id；省略則生成該災種的預設核心模組。",
+    ),
     db: Session = Depends(get_db),
 ) -> BootstrapResponse:
-    """Idempotent: re-bootstrapping returns the existing rows, no duplicates."""
+    """Idempotent: re-bootstrapping returns the existing rows, no duplicates.
+
+    Omit ``module_ids`` to generate the scenario's default core modules, or pass
+    one or more module ids (from ``GET /v1/modules``) to generate exactly those.
+    """
     try:
         artifacts, review_tasks, _created = bootstrap_service.bootstrap_incident(
-            db, incident_id, use_ai=use_ai
+            db, incident_id, use_ai=use_ai, module_ids=module_ids
         )
     except IncidentNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Incident not found",
+        )
+    except (ModuleNotFoundError, ModuleNotExecutableError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
         )
 
     return BootstrapResponse(

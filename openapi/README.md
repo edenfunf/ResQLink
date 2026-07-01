@@ -1,6 +1,6 @@
 # OpenAPI
 
-DisasterBlock 的 API 規格由 **FastAPI 自動產生**，不手寫。
+災鏈 ResQLink 的 API 規格由 **FastAPI 自動產生**，不手寫。
 
 ## 線上瀏覽（服務啟動後）
 

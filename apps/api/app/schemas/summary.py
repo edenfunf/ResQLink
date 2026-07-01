@@ -28,8 +28,12 @@ class ReviewsSummary(BaseModel):
 class ReportsSummary(BaseModel):
     total: int
     geolocated: int = Field(description="lat/lon 皆有、可上圖的通報數")
+    critical_open: int = Field(
+        default=0, description="triage 為 critical 且尚未結案的通報數"
+    )
     by_need_type: list[CountByKey]
     by_severity: list[CountByKey]
+    by_triage_priority: list[CountByKey] = Field(default_factory=list)
 
 
 class ReadinessSummary(BaseModel):

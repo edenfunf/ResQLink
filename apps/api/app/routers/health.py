@@ -12,6 +12,6 @@ router = APIRouter(prefix="/v1", tags=["health"])
 def health() -> dict:
     return {
         "status": "ok",
-        "service": "disasterblock-api",
+        "service": "resqlink-api",
         "version": settings.APP_VERSION,
     }

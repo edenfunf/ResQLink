@@ -13,6 +13,9 @@ from app.utils.slug import short_suffix, slugify
 # alert event_type -> incident scenario_type
 _SCENARIO_BY_EVENT_TYPE = {
     "barrier_lake_alert": "barrier_lake",
+    "earthquake_alert": "earthquake",
+    "typhoon_alert": "typhoon",
+    "flood_alert": "flood",
 }
 
 
@@ -60,6 +63,58 @@ def create_incident_from_alert(
             "title": incident.title,
             "severity": incident.severity,
             "source": payload.source,
+        },
+    )
+
+    db.commit()
+    db.refresh(incident)
+    return incident
+
+
+def create_incident_direct(
+    db: Session,
+    *,
+    title: str,
+    scenario_type: str,
+    severity: str,
+    county: str | None = None,
+    town: str | None = None,
+    river: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    source: str = "agent",
+) -> Incident:
+    """Create an incident from already-parsed fields (used by the orchestrator,
+    which derives scenario_type from natural language rather than an event_type).
+    Insert + outbox incident.created commit in one transaction."""
+    slug = _unique_slug(db, title)
+    incident = Incident(
+        slug=slug,
+        title=title,
+        scenario_type=scenario_type,
+        severity=severity,
+        county=county,
+        town=town,
+        river=river,
+        lat=lat,
+        lon=lon,
+        aoi_geojson=None,
+        status="draft",
+        source_refs=[],
+    )
+    db.add(incident)
+    db.flush()
+
+    outbox_service.enqueue_event(
+        db,
+        event_type="incident.created",
+        aggregate_id=incident.id,
+        payload={
+            "incident_id": str(incident.id),
+            "slug": incident.slug,
+            "title": incident.title,
+            "severity": incident.severity,
+            "source": source,
         },
     )
 

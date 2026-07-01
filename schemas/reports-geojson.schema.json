@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://disasterblock.dev/schemas/reports-geojson.schema.json",
+  "$id": "https://resqlink.dev/schemas/reports-geojson.schema.json",
   "title": "ReportsGeoJSON (Output)",
   "description": "GeoJSON FeatureCollection of geolocated disaster reports. Returned by GET /v1/incidents/{id}/reports.geojson. PII is never included in properties.",
   "type": "object",

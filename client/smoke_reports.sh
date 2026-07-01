@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DisasterBlock smoke test: reports, geojson, public preview.
+# 災鏈 ResQLink smoke test: reports, geojson, public preview.
 # Non-ASCII bodies go via --data-binary from a file: Windows curl.exe re-encodes non-ASCII argv.
 #
 # Usage:   bash client/smoke_reports.sh

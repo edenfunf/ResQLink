@@ -8,10 +8,18 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ReportNeedType(str, Enum):
+    # water disasters (barrier lake / flood / typhoon)
     flooding = "flooding"
     mud_removal = "mud_removal"
     road_blocked = "road_blocked"
+    power_outage = "power_outage"
+    # earthquake / structural
+    building_collapse = "building_collapse"
+    fire = "fire"
+    gas_leak = "gas_leak"
+    # cross-disaster
     trapped_person = "trapped_person"
+    missing_person = "missing_person"
     medical_need = "medical_need"
     supply_need = "supply_need"
     other = "other"
@@ -36,6 +44,13 @@ class VerificationStatus(str, Enum):
     unverified = "unverified"
     verified = "verified"
     rejected = "rejected"
+
+
+class TriagePriority(str, Enum):
+    critical = "critical"
+    high = "high"
+    normal = "normal"
+    low = "low"
 
 
 class DisasterReportCreate(BaseModel):
@@ -82,6 +97,13 @@ class DisasterReportCreateResponse(BaseModel):
     message: str
 
 
+class VerificationRequest(BaseModel):
+    verification_status: VerificationStatus = Field(
+        ..., description="查證結果：verified / rejected / unverified"
+    )
+    note: str | None = Field(default=None, description="查證備註")
+
+
 class DisasterReportItem(BaseModel):
     """Does not expose reporter_contact (PII)."""
 
@@ -96,6 +118,7 @@ class DisasterReportItem(BaseModel):
     address: str | None = None
     status: ReportStatus
     verification_status: VerificationStatus
+    triage_priority: TriagePriority
     created_at: datetime
 
 
@@ -116,6 +139,7 @@ class DisasterReportDetail(BaseModel):
     address: str | None = None
     status: ReportStatus
     verification_status: VerificationStatus
+    triage_priority: TriagePriority
     raw_payload: dict
     created_at: datetime
     updated_at: datetime

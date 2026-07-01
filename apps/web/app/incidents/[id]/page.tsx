@@ -10,10 +10,14 @@ import ReportList from "@/components/ReportList";
 import StatusBadge from "@/components/StatusBadge";
 import JsonBlock from "@/components/JsonBlock";
 import SituationSummary from "@/components/SituationSummary";
+import Timeline from "@/components/Timeline";
+import MatchPanel from "@/components/MatchPanel";
 import DemoGuide from "@/components/DemoGuide";
+import DeliverableCard from "@/components/DeliverableCard";
 import { api } from "@/lib/api";
 import type {
   ArtifactItem,
+  DeliverableItem,
   IncidentDetail,
   IncidentSummary,
   ReportItem,
@@ -29,6 +33,7 @@ export default function IncidentDetailPage() {
   const [reviews, setReviews] = useState<ReviewTaskItem[]>([]);
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [summary, setSummary] = useState<IncidentSummary | null>(null);
+  const [deliverables, setDeliverables] = useState<DeliverableItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bootBusy, setBootBusy] = useState(false);
@@ -38,18 +43,20 @@ export default function IncidentDetailPage() {
     setLoading(true);
     setError(null);
     try {
-      const [inc, arts, revs, reps, sum] = await Promise.all([
+      const [inc, arts, revs, reps, sum, del] = await Promise.all([
         api.getIncident(id),
         api.listArtifacts({ incident_id: id, limit: 100 }),
         api.listReviews({ incident_id: id, limit: 100 }),
         api.listReports(id),
         api.getIncidentSummary(id),
+        api.getDeliverables(id),
       ]);
       setIncident(inc);
       setArtifacts(arts.items);
       setReviews(revs.items);
       setReports(reps.items);
       setSummary(sum);
+      setDeliverables(del.items);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -157,6 +164,28 @@ export default function IncidentDetailPage() {
         </div>
       ) : null}
 
+      {deliverables.length > 0 ? (
+        <section className="mt-8">
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="flex items-baseline gap-2">
+              <h2 className="db-section-title">救災成果</h2>
+              <span className="text-sm text-stone-400">Deliverables</span>
+            </div>
+            <span className="text-xs text-stone-400">
+              {deliverables.filter((d) => d.status !== "empty").length} 項已建置
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-stone-500">
+            模組已依成果分群。每項成果都有「前台」（民眾看到的成品）與「後台」（管理／審核）入口。
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {deliverables.map((d, idx) => (
+              <DeliverableCard key={d.key} item={d} delayMs={Math.min(idx * 70, 420)} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="db-card mt-4 p-5">
         <span className="db-eyebrow">Actions</span>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -229,7 +258,37 @@ export default function IncidentDetailPage() {
           <span className="text-sm text-stone-400">Reports · {reports.length}</span>
         </div>
         <div className="mt-4">
-          <ReportList reports={reports} />
+          <ReportList
+            reports={reports}
+            onVerify={async (reportId, status) => {
+              try {
+                await api.setReportVerification(reportId, status);
+                await load();
+              } catch (e) {
+                setError((e as Error).message);
+              }
+            }}
+          />
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="flex items-baseline gap-2">
+          <h2 className="db-section-title">需求-資源媒合</h2>
+          <span className="text-sm text-stone-400">Matching</span>
+        </div>
+        <div className="mt-4">
+          <MatchPanel incidentId={incident.id} />
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="flex items-baseline gap-2">
+          <h2 className="db-section-title">事件時間軸</h2>
+          <span className="text-sm text-stone-400">Timeline</span>
+        </div>
+        <div className="db-card mt-4 p-5">
+          <Timeline incidentId={incident.id} />
         </div>
       </section>
     </AppShell>

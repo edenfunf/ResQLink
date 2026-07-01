@@ -6,8 +6,10 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import StatusBadge from "@/components/StatusBadge";
+import DynamicForm from "@/components/DynamicForm";
 import { api, API_BASE } from "@/lib/api";
 import type {
+  FormField,
   GeoJSONFeatureCollection,
   PublicPreviewResponse,
 } from "@/lib/types";
@@ -17,6 +19,16 @@ const DisasterMap = dynamic(() => import("@/components/DisasterMap"), {
 });
 
 const DISCLAIMER = "本頁面為公民科技輔助工具，不取代官方災害應變指揮與公告。";
+
+// generated forms (other than the structured report/resource flows) that are
+// rendered as live submittable forms here on the public microsite.
+const LIVE_FORM_TYPES = new Set([
+  "sos_form",
+  "medical_need_form",
+  "vulnerable_care_list",
+  "volunteer_checkin",
+  "supply_donation_form",
+]);
 
 export default function PreviewPage() {
   const params = useParams<{ slug: string }>();
@@ -94,10 +106,15 @@ export default function PreviewPage() {
   const aoi = (mapBundle?.content?.aoi as Record<string, unknown> | null) ?? null;
 
   const hasApproved = data.artifacts.length > 0;
+  const liveForms = (data.artifacts ?? []).filter(
+    (a) =>
+      LIVE_FORM_TYPES.has(a.artifact_type) &&
+      Array.isArray((a.content as any)?.fields)
+  );
 
   return (
     <AppShell>
-      <section className="db-card relative overflow-hidden px-7 py-10 sm:px-10">
+      <section className="db-card db-reveal relative overflow-hidden px-7 py-10 sm:px-10">
         <div
           className="pointer-events-none absolute right-0 top-0 h-full w-1/2 opacity-50"
           style={{
@@ -107,7 +124,16 @@ export default function PreviewPage() {
           }}
         />
         <div className="relative">
-          <span className="db-eyebrow">公開救災入口 · 僅顯示審核通過內容</span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="db-eyebrow">公開救災入口 · 僅顯示審核通過內容</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-0.5 text-[11px] font-medium text-stone-500 ring-1 ring-inset ring-stone-200">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60" style={{ background: "#6f7a4e" }} />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ background: "#6f7a4e" }} />
+              </span>
+              資訊即時更新
+            </span>
+          </div>
           <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
             {incident.title}
           </h1>
@@ -162,7 +188,7 @@ export default function PreviewPage() {
             </section>
           ) : null}
 
-          <section className="mt-6 grid gap-4 sm:grid-cols-2">
+          <section className="db-reveal mt-6 grid gap-4 sm:grid-cols-2" style={{ animationDelay: "80ms" }}>
             <Link
               href={`/reports/${incident.id}`}
               className="db-card db-card-hover group p-5"
@@ -211,7 +237,31 @@ export default function PreviewPage() {
             </section>
           ) : null}
 
-          <section className="mt-6">
+          {liveForms.length > 0 ? (
+            <section className="mt-6">
+              <span className="db-eyebrow">Forms</span>
+              <h2 className="db-section-title mt-1">線上表單</h2>
+              <p className="mt-1 text-sm text-stone-500">
+                以下表單由救災元件即時生成、經審核後上線，可直接填寫提交。
+              </p>
+              <div className="mt-3 grid gap-4 lg:grid-cols-2">
+                {liveForms.map((a) => {
+                  const content = a.content as Record<string, any>;
+                  return (
+                    <DynamicForm
+                      key={a.id}
+                      artifactId={a.id}
+                      title={(content.title as string) || a.title || a.artifact_type}
+                      notice={content.notice as string | undefined}
+                      fields={content.fields as FormField[]}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="db-reveal mt-6" style={{ animationDelay: "120ms" }}>
             <span className="db-eyebrow">Map</span>
             <h2 className="db-section-title mt-1">災情地圖</h2>
             <div className="mt-3">

@@ -26,11 +26,16 @@ const STYLES: Record<string, Style> = {
   // verification
   unverified: NEUTRAL,
   verified: MOSS,
-  // severity / risk
+  // severity / risk / triage
   low: NEUTRAL,
+  normal: STEEL,
   medium: OCHRE,
   high: TERRA,
   critical: OXBLOOD,
+  // resource offer status
+  open: MOSS,
+  matched: STEEL,
+  closed: NEUTRAL,
 };
 
 const LABELS: Record<string, string> = {
@@ -48,9 +53,13 @@ const LABELS: Record<string, string> = {
   unverified: "未驗證",
   verified: "已驗證",
   low: "低",
+  normal: "一般",
   medium: "中",
   high: "高",
   critical: "極高",
+  open: "開放中",
+  matched: "已媒合",
+  closed: "已結束",
 };
 
 export default function StatusBadge({

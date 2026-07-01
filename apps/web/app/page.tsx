@@ -7,10 +7,12 @@ import { api, API_BASE } from "@/lib/api";
 import type { HealthResponse } from "@/lib/types";
 
 const PHASES = [
-  { tag: "01", name: "事件標準化", text: "接收官方警戒 / 人工建案，轉成標準化 Incident 與事件 outbox。" },
-  { tag: "02", name: "元件生成 + 審核", text: "一鍵 Bootstrap 生成 6 種救災元件，並建立人工審核任務。" },
-  { tag: "03", name: "通報 + GeoJSON", text: "民眾災情通報落地，輸出去識別化 GeoJSON 與 approved-only 公開頁。" },
-  { tag: "04", name: "可操作前端", text: "管理台、審核台、公開入口、通報頁與 Leaflet 地圖。" },
+  { tag: "01", name: "理解 + 標準化", text: "對話式 Agent 聽懂災情描述（多災種），標準化為 Incident 並寫入事件 outbox。" },
+  { tag: "02", name: "提案 + 生成", text: "從 27 個模組目錄提案救災元件，由人確認後平行生成；可規則式或 AI 草擬。" },
+  { tag: "03", name: "審核 + 公開", text: "每個元件須人工審核才公開；審核通過內容可一鍵發布至 FB / LINE。" },
+  { tag: "04", name: "通報 + 分流", text: "民眾通報落地並自動 triage 分流，輸出去識別化 GeoJSON。" },
+  { tag: "05", name: "媒合 + 派工", text: "登記志工 / 物資，與需求依距離媒合並派工追蹤至完成。" },
+  { tag: "06", name: "態勢 + 稽核", text: "情勢摘要、需求熱點與事件時間軸，全程可稽核。" },
 ];
 
 function HealthPill({
@@ -78,23 +80,26 @@ export default function HomePage() {
         <div className="relative max-w-2xl">
           <span className="db-eyebrow">防災積木元件 · Disaster Response Toolkit</span>
           <h1 className="font-display mt-4 text-5xl font-semibold leading-[1.05] text-stone-900 sm:text-6xl">
-            DisasterBlock
+            災鏈 ResQLink
           </h1>
           <div className="mt-5 h-px w-16" style={{ background: "#8c3b2e" }} />
           <p className="font-display mt-5 text-xl text-stone-700">
             堰塞湖災害通報與救災入口生成元件
           </p>
           <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-stone-500">
-            把一次災害事件，自動變成救災入口、表單、地圖與民眾通報通道，並以標準格式輸出，
-            讓任何防災系統都能拼接使用。
+            說一句「發生大地震」，Agent 就從可重複使用的模組目錄，平行拼出救災入口、表單、地圖與通報通道；
+            通報自動分流、需求與資源媒合派工，全部以標準格式輸出，且一律經人工審核才公開。
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/console" className="db-btn db-btn-accent">
+            <Link href="/console/agent" className="db-btn db-btn-accent">
+              對話式 AI 編排
+            </Link>
+            <Link href="/console" className="db-btn db-btn-ghost">
               進入管理台
             </Link>
-            <Link href="/console/new" className="db-btn db-btn-ghost">
-              建立事件
+            <Link href="/console/modules" className="db-btn db-btn-ghost">
+              模組目錄
             </Link>
             <a
               href={`${API_BASE}/docs`}

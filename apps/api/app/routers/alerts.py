@@ -17,7 +17,7 @@ router = APIRouter(prefix="/v1/events", tags=["events"])
     "/alerts",
     response_model=IncidentCreateResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Ingest a barrier-lake alert and create an incident",
+    summary="Ingest a disaster alert and create an incident",
 )
 def create_alert(
     payload: AlertEventCreate,
@@ -27,7 +27,10 @@ def create_alert(
     if payload.event_type not in SUPPORTED_EVENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported event_type. Only barrier_lake_alert is supported.",
+            detail=(
+                "Unsupported event_type. Supported: "
+                + ", ".join(SUPPORTED_EVENT_TYPES)
+            ),
         )
 
     try:

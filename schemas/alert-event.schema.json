@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://disasterblock.dev/schemas/alert-event.schema.json",
+  "$id": "https://resqlink.dev/schemas/alert-event.schema.json",
   "title": "AlertEvent (Input)",
   "description": "POST /v1/events/alerts request body: an official alert or manual entry that becomes a standardized Incident.",
   "type": "object",
@@ -13,8 +13,8 @@
     },
     "event_type": {
       "type": "string",
-      "description": "事件類型。目前僅支援 barrier_lake_alert。",
-      "enum": ["barrier_lake_alert"]
+      "description": "事件類型，決定 incident.scenario_type（堰塞湖 / 地震 / 颱風 / 水災）。",
+      "enum": ["barrier_lake_alert", "earthquake_alert", "typhoon_alert", "flood_alert"]
     },
     "title": { "type": "string", "minLength": 1 },
     "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },

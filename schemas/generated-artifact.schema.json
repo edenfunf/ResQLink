@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://disasterblock.dev/schemas/generated-artifact.schema.json",
+  "$id": "https://resqlink.dev/schemas/generated-artifact.schema.json",
   "title": "GeneratedArtifact (Output)",
   "description": "A rule-based generated rescue component. Returned by GET /v1/artifacts/{id}.",
   "type": "object",
@@ -10,13 +10,29 @@
     "incident_id": { "type": "string", "format": "uuid" },
     "artifact_type": {
       "type": "string",
+      "description": "對應模組註冊表中的 generator 模組 id。",
       "enum": [
         "microsite_config",
         "damage_report_form",
         "volunteer_form",
         "supply_form",
         "map_bundle",
-        "public_notice_draft"
+        "public_notice_draft",
+        "evacuation_guide",
+        "faq",
+        "sos_form",
+        "medical_need_form",
+        "vulnerable_care_list",
+        "fb_page_post",
+        "line_broadcast",
+        "press_release",
+        "volunteer_recruit_post",
+        "volunteer_checkin",
+        "supply_donation_form",
+        "supply_dashboard",
+        "shelter_map",
+        "hazard_zone_layer",
+        "clarification_notice"
       ]
     },
     "title": { "type": ["string", "null"] },

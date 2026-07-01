@@ -24,6 +24,20 @@ const SEV_BAR: Record<string, string> = {
   low: "bg-[#d9d1c3]",
 };
 
+const TRIAGE_LABELS: Record<string, string> = {
+  critical: "極急",
+  high: "急",
+  normal: "一般",
+  low: "低",
+};
+
+const TRIAGE_BAR: Record<string, string> = {
+  critical: "bg-[#8c3b2e]",
+  high: "bg-[#b9543f]",
+  normal: "bg-[#7c828f]",
+  low: "bg-[#d9d1c3]",
+};
+
 function Metric({
   value,
   label,
@@ -119,6 +133,16 @@ export default function SituationSummary({ summary }: { summary: IncidentSummary
         </div>
       </div>
 
+      {reports.critical_open > 0 ? (
+        <div
+          className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium"
+          style={{ background: "#f7e3dc", color: "#8c3b2e" }}
+        >
+          <span className="h-2 w-2 rounded-full" style={{ background: "#8c3b2e" }} />
+          有 {reports.critical_open} 筆「極急」通報尚未結案，建議優先處理與媒合。
+        </div>
+      ) : null}
+
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric value={artifacts.approved} label="已通過元件" accent="text-[#566246]" />
         <Metric value={reviews.pending} label="待審核" accent="text-[#876c2c]" />
@@ -126,7 +150,7 @@ export default function SituationSummary({ summary }: { summary: IncidentSummary
         <Metric value={reports.geolocated} label="可上圖" accent="text-[#8c3b2e]" />
       </div>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-2">
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <Breakdown
           title="通報需求類型"
           items={reports.by_need_type}
@@ -137,6 +161,12 @@ export default function SituationSummary({ summary }: { summary: IncidentSummary
           items={reports.by_severity}
           labels={SEV_LABELS}
           barClass={SEV_BAR}
+        />
+        <Breakdown
+          title="分流優先序"
+          items={reports.by_triage_priority}
+          labels={TRIAGE_LABELS}
+          barClass={TRIAGE_BAR}
         />
       </div>
     </section>

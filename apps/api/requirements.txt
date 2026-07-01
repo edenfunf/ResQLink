@@ -8,3 +8,7 @@ psycopg[binary]==3.2.3
 pytest==8.3.4
 httpx==0.28.1
 openai>=1.40,<2
+# Google Forms connector (optional at runtime; only used when a service account
+# is configured). Imported lazily so the app runs without credentials.
+google-api-python-client==2.149.0
+google-auth==2.35.0

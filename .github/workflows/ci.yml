@@ -1,4 +1,4 @@
-name: DisasterBlock CI
+name: 災鏈 ResQLink CI
 
 on:
   push:

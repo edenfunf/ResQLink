@@ -1,10 +1,10 @@
-# DisasterBlock — 系統架構
+# 災鏈 ResQLink — 系統架構
 
 > GitHub 可直接渲染本頁的 Mermaid 圖。
 
 ## 1. 系統總覽
 
-DisasterBlock 是一組**防災積木元件**：把堰塞湖災害事件，經過「標準化 → 生成 → 審核 → 公開 / 通報」
+災鏈 ResQLink 是一組**防災積木元件**：把堰塞湖災害事件，經過「標準化 → 生成 → 審核 → 公開 / 通報」
 的資料流，輸出成可被其他系統拼接的標準格式（Incident / Artifacts / Reports / GeoJSON / Public Preview）。
 
 三個容器（Docker Compose）：
@@ -39,9 +39,11 @@ flowchart TD
 | 能力 | 主要產物 |
 | --- | --- |
 | 事件接收與標準化 | `incidents`、`event_outbox` |
-| 生成救災元件 + 人工審核 | `generated_artifacts`、`review_tasks` |
-| 民眾通報 + GeoJSON + 公開 Preview | `disaster_reports`、reports.geojson、public preview |
-| 情勢摘要與可操作前端 | situation summary、Next.js + Leaflet |
+| 生成救災元件 + 人工審核 | `generated_artifacts`、`review_tasks`、模組註冊表（27 模組） |
+| 對話式編排 | agent orchestrator（plan / execute） |
+| 民眾通報 + 自動分流 + GeoJSON + 公開 Preview | `disaster_reports`（triage）、reports.geojson、public preview |
+| 需求-資源媒合 | `resource_offers`、matching engine、`/matches` |
+| 情勢摘要 + 時間軸 + 可操作前端 | situation summary、timeline、Next.js + Leaflet |
 
 ## 4. 後端分層
 
@@ -107,6 +109,58 @@ flowchart LR
 這些 `schemas/*.json` 即是**元件交換格式**：讓民間團隊、政府系統或後續平台不必讀完整碼，
 也能知道每個積木的 Input / Output 形狀。
 
+## 8.5 模組註冊表（Module Registry）與多災種
+
+生成元件不再寫死，而是收斂為一份 **模組註冊表**（[`app/modules/`](../apps/api/app/modules/)）：
+
+- 每個模組是一份標準 `ModuleSpec`（`id / name / category / module_type / applicable_scenarios /
+  default_enabled / implemented / risk / review_type / generate`），`id` 同時即 artifact_type。
+- **生成型（generator）** 模組產出可審核的草稿（表單 / 公告 / 貼文 / 地圖設定）；
+  **動作型（action）** 與 **處理型（processor）** 模組登錄在目錄中但標 `implemented=False`，
+  作為 connector / worker 的接點與路線圖，不假裝已存在。
+- 模組依十個大方向（資訊匯流、通報、求援、擴散、志工、物資、媒合、地理態勢、查證、協調）分類，
+  可由 `GET /v1/modules` 查詢。
+
+**多災種**：各災別的需求類型、物資品項、志工技能與用語收進
+[`scenarios.py`](../apps/api/app/modules/scenarios.py) 的 `ScenarioProfile`。同一個模組對堰塞湖、
+地震、颱風、水災都適用，內容隨 `incident.scenario_type` 切換；新增一種災害是新增一份 profile，
+而非改程式。
+
+**Bootstrap 兩種模式（Agent 編排的接點）**：
+
+```
+POST /v1/bootstrap/incidents/{id}                    → 生成該災種的 default_enabled 核心模組（向後相容）
+POST /v1/bootstrap/incidents/{id}?module_ids=a&module_ids=b → 只生成選定模組（人或編排 Agent 選擇）
+```
+
+Bootstrap **逐模組冪等**：已存在的元件略過、不重生；未知或未實作的模組回 400。
+
+## 8.6 對話式編排 Agent（Planner-Orchestrator）
+
+在 Registry 之上的 **編排 Agent** 是系統唯一的 LLM 決策點（[`agent_orchestrator.py`](../apps/api/app/services/agent_orchestrator.py)），
+刻意拆成兩階段，讓「理解」與「生成」之間有人工確認：
+
+```mermaid
+flowchart TD
+  M[使用者自然語言：『發生大地震』] --> P[POST /v1/agent/plan]
+  P --> I[解析意圖→標準化 Incident]
+  I --> Q[查 Registry：該災種可執行模組]
+  Q --> R[提案清單（建議+理由，不生成）]
+  R --> H{人工選擇}
+  H --> X[POST /v1/agent/execute]
+  X --> G[逐模組生成（單點失敗隔離）]
+  G --> RV[Review Gate（pending_review）]
+```
+
+- **意圖解析**：優先用 AI（[`ai_agent.parse_intent`](../apps/api/app/services/ai_agent.py)）抽出
+  `scenario_type / 地點 / 嚴重度`；無金鑰或失敗時退化為關鍵字判斷，流程不中斷。
+- **提案**：建議集 = 該災種預設核心模組 + 規則式情境建議，並附推薦理由（可解釋）；
+  只提案 `implemented` 的 generator 模組。
+- **執行**：逐模組獨立生成，單一模組失敗（如未實作）不影響其餘，回報每個模組的
+  created / skipped / failed。
+- **守則**：Agent 只輸出「呼叫哪些模組」的決策，**不直接寫資料、不直接公開**；
+  產出一律進審核閘門，全程寫 `event_outbox`（`agent.planned` / `agent.executed`）。
+
 ## 9. 可擴充點（保留接口，本階段不實作）
 
 ```mermaid
@@ -118,10 +172,13 @@ flowchart TD
   I[Disaster Reports] --> DS[Dashboard / Analytics]
 ```
 
-- **LINE Bot**：消費 outbox 事件做推播 / 收通報（目前不接）。
 - **official data connector**：把 `source_refs` 接上真實官方警戒 API（目前僅保留欄位，未串接）。
-- **worker / outbox relay**：背景消費 `event_outbox`。
-- **matching**：志工 / 物資與需求媒合。
-- **dashboard**：依 need_type / severity / status 的災情統計。
+- **worker / outbox relay**：背景消費 `event_outbox`（目前 outbox 為同步寫入、按需讀取）。
+- **真實社群 connector**：把 publication 的模擬連接器換成真實 Facebook / LINE API（需憑證）。
 
-> 註：本專案**未**串接任何真實官方 API；`source_refs` 與 connector 為預留擴充點。
+> 已實作（曾為擴充點）：**需求-資源媒合**（`needs_matching_engine` → `/matches`）、
+> **志工/資源派遣與追蹤**（`volunteer_dispatch` → `/assignments`）、
+> **對外發布**（`fb_publish_action` / `line_broadcast_action` → `/artifacts/{id}/publish`，
+> 目前為**模擬連接器**，未實際發文）、**情勢統計與時間軸**（summary / timeline）。
+>
+> 註：本專案**未**串接任何真實官方 API 或真實社群平台；`source_refs` 與真實 connector 為預留擴充點。

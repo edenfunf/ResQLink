@@ -20,12 +20,19 @@ _NEED_TYPE_ORDER = [
     "flooding",
     "mud_removal",
     "road_blocked",
+    "power_outage",
+    "building_collapse",
+    "fire",
+    "gas_leak",
     "trapped_person",
+    "missing_person",
     "medical_need",
     "supply_need",
     "other",
 ]
 _SEVERITY_ORDER = ["critical", "high", "medium", "low"]
+_TRIAGE_ORDER = ["critical", "high", "normal", "low"]
+_OPEN_REPORT_STATUSES = ("new", "triaged", "in_progress")
 
 
 class IncidentNotFoundError(Exception):
@@ -63,6 +70,9 @@ def get_incident_summary(db: Session, incident_id: uuid.UUID) -> IncidentSummary
     rev_counts = _counts_by(db, ReviewTask, ReviewTask.status, incident_id)
     need_counts = _counts_by(db, DisasterReport, DisasterReport.need_type, incident_id)
     sev_counts = _counts_by(db, DisasterReport, DisasterReport.severity, incident_id)
+    triage_counts = _counts_by(
+        db, DisasterReport, DisasterReport.triage_priority, incident_id
+    )
 
     reports_total = db.scalar(
         select(func.count())
@@ -76,6 +86,15 @@ def get_incident_summary(db: Session, incident_id: uuid.UUID) -> IncidentSummary
             DisasterReport.incident_id == incident_id,
             DisasterReport.lat.is_not(None),
             DisasterReport.lon.is_not(None),
+        )
+    ) or 0
+    critical_open = db.scalar(
+        select(func.count())
+        .select_from(DisasterReport)
+        .where(
+            DisasterReport.incident_id == incident_id,
+            DisasterReport.triage_priority == "critical",
+            DisasterReport.status.in_(_OPEN_REPORT_STATUSES),
         )
     ) or 0
 
@@ -95,8 +114,10 @@ def get_incident_summary(db: Session, incident_id: uuid.UUID) -> IncidentSummary
     reports = ReportsSummary(
         total=int(reports_total),
         geolocated=int(geolocated),
+        critical_open=int(critical_open),
         by_need_type=_ordered(need_counts, _NEED_TYPE_ORDER),
         by_severity=_ordered(sev_counts, _SEVERITY_ORDER),
+        by_triage_priority=_ordered(triage_counts, _TRIAGE_ORDER),
     )
     readiness = ReadinessSummary(
         bootstrapped=artifacts.total > 0,

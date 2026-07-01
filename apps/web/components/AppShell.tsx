@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import DemoLauncher from "./DemoLauncher";
 
 const NAV = [
   { href: "/console", label: "管理台" },
+  { href: "/console/agent", label: "AI 編排" },
+  { href: "/console/modules", label: "模組目錄" },
+  { href: "/console/connectors", label: "開放資料" },
   { href: "/console/new", label: "建立事件" },
   { href: "/console/reviews", label: "審核" },
 ];
@@ -39,12 +43,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         className="sticky top-0 z-20 border-b backdrop-blur-md"
         style={{ borderColor: "#e7e1d7", background: "rgba(244,241,236,0.8)" }}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3">
           <Link href="/" className="group flex items-center gap-2.5">
             <BrandMark />
             <span className="flex flex-col leading-none">
               <span className="font-display text-[16px] font-semibold tracking-tight text-stone-900">
-                DisasterBlock
+                災鏈 ResQLink
               </span>
               <span className="mt-1 text-[10.5px] uppercase tracking-[0.18em] text-stone-400">
                 防災積木元件
@@ -80,14 +84,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-[1400px] px-4 py-8">{children}</main>
 
-      <footer className="mx-auto max-w-6xl px-4 pb-10 pt-4">
+      <footer className="mx-auto max-w-[1400px] px-4 pb-10 pt-4">
         <div className="db-divider mb-4" />
         <p className="text-xs text-stone-400">
-          DisasterBlock — 公民科技輔助工具，不取代官方災害應變指揮與公告。
+          災鏈 ResQLink — 公民科技輔助工具，不取代官方災害應變指揮與公告。
         </p>
       </footer>
+
+      <DemoLauncher />
     </div>
   );
 }

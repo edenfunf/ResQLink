@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://disasterblock.dev/schemas/incident.schema.json",
+  "$id": "https://resqlink.dev/schemas/incident.schema.json",
   "title": "Incident (Output)",
   "description": "Standardized disaster incident. Returned by GET /v1/incidents/{id}.",
   "type": "object",

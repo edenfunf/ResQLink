@@ -37,4 +37,4 @@ echo "==> 7/7 build web image (no start)"
 docker compose build web
 
 echo
-echo "Preflight passed. DisasterBlock is ready for submission."
+echo "Preflight passed. 災鏈 ResQLink is ready for submission."

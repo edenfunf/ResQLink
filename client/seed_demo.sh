@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DisasterBlock — one-click demo data seeder.
+# 災鏈 ResQLink — one-click demo data seeder.
 #
 # Usage:   bash client/seed_demo.sh
 # Env:     API_BASE_URL (default http://localhost:8000)
@@ -108,6 +108,60 @@ else
   echo "    (summary at GET /v1/incidents/${INCIDENT_ID}/summary)"
 fi
 
+echo "==> 10. Register resources (supply + volunteer)"
+post_file "${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/resources" "${SAMPLES}/resource-supply.json" >/dev/null
+post_file "${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/resources" "${SAMPLES}/resource-volunteer.json" >/dev/null
+echo "    2 resource offers registered"
+
+echo "==> 11. Needs-resource matching"
+MATCH_JSON="$(curl -sS "${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/matches")"
+if [ "${HAVE_JQ}" = 1 ]; then
+  printf '%s' "${MATCH_JSON}" | jq -r '"    matched \(.matched_reports), unmatched \(.unmatched_reports), open offers \(.open_offers)"'
+elif [ -n "${PY}" ]; then
+  printf '%s' "${MATCH_JSON}" | "$PY" -c "import sys,json
+d=json.load(sys.stdin)
+print('    matched %d, unmatched %d, open offers %d' % (d['matched_reports'],d['unmatched_reports'],d['open_offers']))" | tr -d '\r'
+else
+  echo "    (matches at GET /v1/incidents/${INCIDENT_ID}/matches)"
+fi
+
+# Pick the first matched report + its first candidate offer, then dispatch.
+if [ -n "${PY}" ]; then
+  read -r DISP_REPORT DISP_OFFER <<EOF2
+$(printf '%s' "${MATCH_JSON}" | "$PY" -c "import sys,json
+d=json.load(sys.stdin)
+for it in d['items']:
+    if it['candidates']:
+        print(it['report_id'], it['candidates'][0]['offer_id']); break" | tr -d '\r')
+EOF2
+  if [ -n "${DISP_REPORT:-}" ]; then
+    echo "==> 12. Dispatch a resource to a matched report"
+    curl -sS -X POST "${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/assignments" \
+      -H "Content-Type: application/json" \
+      -d "{\"report_id\":\"${DISP_REPORT}\",\"offer_id\":\"${DISP_OFFER}\",\"note\":\"seed demo dispatch\"}" >/dev/null \
+      && echo "    assignment created (report in_progress, offer matched)"
+  fi
+fi
+
+echo "==> 13. Publish an approved outreach artifact (simulated connector)"
+# Generate + approve fb_page_post, then publish it.
+curl -sS -X POST "${API_BASE_URL}/v1/bootstrap/incidents/${INCIDENT_ID}?module_ids=fb_page_post" >/dev/null
+if [ -n "${PY}" ]; then
+  FB_ART="$(curl -sS "${API_BASE_URL}/v1/artifacts?incident_id=${INCIDENT_ID}&artifact_type=fb_page_post" \
+    | "$PY" -c "import sys,json
+items=json.load(sys.stdin)['items']
+print(items[0]['id'] if items else '')" | tr -d '\r')"
+  FB_REV="$(curl -sS "${API_BASE_URL}/v1/reviews?incident_id=${INCIDENT_ID}&limit=50" \
+    | "$PY" -c "import sys,json
+art='${FB_ART}'
+print(next((r['id'] for r in json.load(sys.stdin)['items'] if r['artifact_id']==art), ''))" | tr -d '\r')"
+  if [ -n "${FB_ART}" ] && [ -n "${FB_REV}" ]; then
+    curl -sS -X POST "${API_BASE_URL}/v1/reviews/${FB_REV}/approve" -H "Content-Type: application/json" -d '{}' >/dev/null
+    curl -sS -X POST "${API_BASE_URL}/v1/artifacts/${FB_ART}/publish" >/dev/null \
+      && echo "    fb_page_post approved + published (simulated)"
+  fi
+fi
+
 cat <<EOF
 
 ============================================================
@@ -116,7 +170,13 @@ cat <<EOF
  Console:
  ${WEB_BASE_URL}/console
 
- Incident:
+ AI Orchestrator (對話式編排):
+ ${WEB_BASE_URL}/console/agent
+
+ Module Catalogue (模組目錄):
+ ${WEB_BASE_URL}/console/modules
+
+ Incident (含時間軸 / 媒合):
  ${WEB_BASE_URL}/incidents/${INCIDENT_ID}
 
  Public Preview:
@@ -130,5 +190,11 @@ cat <<EOF
 
  Situation Summary (API):
  ${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/summary
+
+ Timeline (API):
+ ${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/timeline
+
+ Matches (API):
+ ${API_BASE_URL}/v1/incidents/${INCIDENT_ID}/matches
 ============================================================
 EOF

@@ -52,7 +52,7 @@ export default function DemoGuide({
     );
   } else if (!hasApproved) {
     message =
-      "已生成 6 個元件，待審核；通過審核的元件才會於公開頁顯示。";
+      `已生成 ${summary.artifacts.total} 個元件，待審核；通過審核的元件才會於公開頁顯示。`;
   } else if (!hasReports) {
     message = "已有審核通過的可公開元件。";
     action = (

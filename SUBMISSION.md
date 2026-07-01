@@ -1,10 +1,10 @@
-# DisasterBlock — Submission Guide
+# 災鏈 ResQLink — Submission Guide
 
 > 給評審的最短驗收文件。完整說明見 [README.md](./README.md)。
 
 ## 1. 作品名稱
 
-**DisasterBlock：堰塞湖災害通報與救災入口生成元件**
+**災鏈 ResQLink：堰塞湖災害通報與救災入口生成元件**
 
 ## 2. 一句話定位
 
@@ -26,6 +26,10 @@ Public Preview API 的**可拼接防災積木元件**。
 | Disaster Reports | 民眾災情通報（保留原始 raw_payload） |
 | Reports GeoJSON | 標準地圖圖層（去 PII、僅含座標者） |
 | Public Preview API | 只回審核通過內容的公開入口 |
+| Module Registry | 27 個模組（21 生成型 + 6 處理/動作型）依十大方向分類，全部已實作 |
+| Agent Orchestrator | 對話式編排：自然語言 → 提案模組 → 平行生成（產出仍經審核） |
+| Triage / Matching / Dispatch | 通報自動分流、需求-資源媒合、派工與狀態追蹤 |
+| Timeline / Publish | 事件時間軸（outbox 稽核）、對外發布（FB/LINE 模擬連接器，限 approved） |
 
 ## 5. 快速啟動
 
@@ -77,7 +81,7 @@ Public Preview / Report Form / GeoJSON 的 URL。
 ## 9. 測試與 CI
 
 ```bash
-docker compose exec api pytest -q        # 後端 24 passed
+docker compose exec api pytest -q        # 後端 77 passed
 python scripts/validate_schemas.py       # JSON Schema + samples（需 pip install jsonschema）
 ```
 

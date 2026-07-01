@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DisasterBlock smoke test: bootstrap, artifacts, review approve/reject.
+# 災鏈 ResQLink smoke test: bootstrap, artifacts, review approve/reject.
 #
 # Usage:   bash client/smoke_bootstrap.sh
 # Env:     BASE_URL (default http://localhost:8000). jq optional.

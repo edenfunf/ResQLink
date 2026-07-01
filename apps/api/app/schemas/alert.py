@@ -6,7 +6,12 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 # a plain str (not Literal) so the router returns 400, not Pydantic's 422
-SUPPORTED_EVENT_TYPES = ("barrier_lake_alert",)
+SUPPORTED_EVENT_TYPES = (
+    "barrier_lake_alert",
+    "earthquake_alert",
+    "typhoon_alert",
+    "flood_alert",
+)
 Severity = Literal["low", "medium", "high", "critical"]
 
 
@@ -30,7 +35,10 @@ class AlertEventCreate(BaseModel):
     source: str = Field(..., description="資料來源，例如 manual / official")
     event_type: str = Field(
         ...,
-        description="事件類型，目前僅支援 barrier_lake_alert",
+        description=(
+            "事件類型，支援 barrier_lake_alert / earthquake_alert / "
+            "typhoon_alert / flood_alert"
+        ),
         examples=["barrier_lake_alert"],
     )
     title: str = Field(..., min_length=1, description="事件標題")

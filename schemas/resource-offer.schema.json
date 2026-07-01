@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://resqlink.dev/schemas/resource-offer.schema.json",
+  "title": "ResourceOffer (Input + Output)",
+  "description": "A volunteer or supply offer — the supply side of the matching loop. Input: POST /v1/incidents/{id}/resources. lat/lon must be supplied together.",
+  "type": "object",
+  "required": ["offer_type", "item"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "readOnly": true },
+    "incident_id": { "type": "string", "format": "uuid", "readOnly": true },
+    "offer_type": { "type": "string", "enum": ["volunteer", "supply"] },
+    "item": { "type": "string", "minLength": 1, "description": "可協助項目（志工）或物資品項。" },
+    "quantity": { "type": ["integer", "null"], "minimum": 1 },
+    "provider_name": { "type": ["string", "null"], "description": "PII。不會出現在列表 API 輸出。" },
+    "provider_contact": { "type": ["string", "null"], "description": "PII。明文儲存；production 需加密 / 權限控管。" },
+    "lat": { "type": ["number", "null"], "description": "與 lon 必須成對，否則回 422。" },
+    "lon": { "type": ["number", "null"], "description": "與 lat 必須成對，否則回 422。" },
+    "address": { "type": ["string", "null"] },
+    "available_time": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["open", "matched", "closed"], "readOnly": true },
+    "created_at": { "type": "string", "format": "date-time", "readOnly": true }
+  },
+  "examples": [
+    {
+      "offer_type": "supply",
+      "item": "飲用水",
+      "quantity": 200,
+      "provider_name": "某企業志工隊",
+      "lat": 23.66,
+      "lon": 121.42,
+      "address": "花蓮縣光復鄉物資集散點"
+    }
+  ]
+}

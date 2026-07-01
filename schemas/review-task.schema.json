@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://disasterblock.dev/schemas/review-task.schema.json",
+  "$id": "https://resqlink.dev/schemas/review-task.schema.json",
   "title": "ReviewTask (Output)",
   "description": "A human review task gating publication of an artifact. Returned by GET /v1/reviews.",
   "type": "object",

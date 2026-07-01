@@ -1,0 +1,11 @@
+{
+  "offer_type": "supply",
+  "item": "飲用水",
+  "quantity": 200,
+  "provider_name": "某企業志工隊",
+  "provider_contact": "0922-000-111",
+  "lat": 23.66,
+  "lon": 121.42,
+  "address": "花蓮縣光復鄉物資集散點",
+  "available_time": "平日 09:00-17:00"
+}

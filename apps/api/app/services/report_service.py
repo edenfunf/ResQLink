@@ -12,7 +12,7 @@ from app.schemas.geojson import (
     GeoJSONPoint,
 )
 from app.schemas.report import DisasterReportCreate
-from app.services import outbox_service
+from app.services import outbox_service, triage_service
 
 
 class IncidentNotFoundError(Exception):
@@ -33,6 +33,9 @@ def create_report(
     if incident.status == "archived":
         raise IncidentArchivedError()
 
+    triage_priority = triage_service.classify(
+        payload.need_type.value, payload.severity.value
+    )
     report = DisasterReport(
         incident_id=incident.id,
         reporter_name=payload.reporter_name,
@@ -45,6 +48,7 @@ def create_report(
         address=payload.address,
         status="new",
         verification_status="unverified",
+        triage_priority=triage_priority,
         raw_payload=payload.model_dump(mode="json"),
     )
     db.add(report)
@@ -59,9 +63,52 @@ def create_report(
             "report_id": str(report.id),
             "need_type": report.need_type,
             "severity": report.severity,
+            "triage_priority": report.triage_priority,
         },
     )
 
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+def retriage_report(db: Session, report_id: uuid.UUID) -> DisasterReport | None:
+    """Recompute and persist a report's triage priority."""
+    report = db.get(DisasterReport, report_id)
+    if report is None:
+        return None
+    report.triage_priority = triage_service.classify(
+        report.need_type, report.severity
+    )
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+def set_verification(
+    db: Session,
+    report_id: uuid.UUID,
+    verification_status: str,
+    note: str | None = None,
+) -> DisasterReport | None:
+    """Human verification of a citizen report (verified / rejected / unverified).
+    Writes the change to the outbox for audit."""
+    report = db.get(DisasterReport, report_id)
+    if report is None:
+        return None
+    report.verification_status = verification_status
+    db.flush()
+    outbox_service.enqueue_event(
+        db,
+        event_type="report.verification_changed",
+        aggregate_id=report.id,
+        payload={
+            "incident_id": str(report.incident_id),
+            "report_id": str(report.id),
+            "verification_status": verification_status,
+            "note": note,
+        },
+    )
     db.commit()
     db.refresh(report)
     return report
@@ -123,6 +170,7 @@ def to_geojson(
                 "report_id": str(report.id),
                 "need_type": report.need_type,
                 "severity": report.severity,
+                "triage_priority": report.triage_priority,
                 "status": report.status,
                 "verification_status": report.verification_status,
                 "address": report.address,

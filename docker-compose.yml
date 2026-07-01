@@ -1,33 +1,47 @@
 services:
   db:
     image: postgres:16
-    container_name: disasterblock-db
+    container_name: resqlink-db
     environment:
-      POSTGRES_USER: disasterblock
-      POSTGRES_PASSWORD: disasterblock
-      POSTGRES_DB: disasterblock
+      POSTGRES_USER: resqlink
+      POSTGRES_PASSWORD: resqlink
+      POSTGRES_DB: resqlink
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U disasterblock -d disasterblock"]
+      test: ["CMD-SHELL", "pg_isready -U resqlink -d resqlink"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   api:
     build: ./apps/api
-    container_name: disasterblock-api
+    container_name: resqlink-api
     environment:
-      DATABASE_URL: postgresql+psycopg://disasterblock:disasterblock@db:5432/disasterblock
-      APP_NAME: DisasterBlock API
+      DATABASE_URL: postgresql+psycopg://resqlink:resqlink@db:5432/resqlink
+      APP_NAME: 災鏈 ResQLink API
       APP_VERSION: 0.1.0
       ENVIRONMENT: development
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      CWA_API_KEY: ${CWA_API_KEY:-}
+      WEB_PUBLIC_BASE_URL: ${WEB_PUBLIC_BASE_URL:-http://localhost:3000}
+      # Real outbound connectors (optional; blank => simulated fallback)
+      FB_PAGE_ID: ${FB_PAGE_ID:-}
+      FB_PAGE_ACCESS_TOKEN: ${FB_PAGE_ACCESS_TOKEN:-}
+      FB_GRAPH_API_VERSION: ${FB_GRAPH_API_VERSION:-v21.0}
+      LINE_CHANNEL_ACCESS_TOKEN: ${LINE_CHANNEL_ACCESS_TOKEN:-}
+      # path INSIDE the container; mount your key via the volume below
+      GOOGLE_SERVICE_ACCOUNT_FILE: ${GOOGLE_SERVICE_ACCOUNT_FILE:-}
+      GOOGLE_FORMS_SHARE_WITH: ${GOOGLE_FORMS_SHARE_WITH:-}
     ports:
       - "8000:8000"
+    volumes:
+      # mount a host ./secrets dir (git-ignored) so the Google service-account
+      # JSON is reachable at the path set in GOOGLE_SERVICE_ACCOUNT_FILE.
+      - ./secrets:/secrets:ro
     depends_on:
       db:
         condition: service_healthy
@@ -38,7 +52,7 @@ services:
       args:
         # NEXT_PUBLIC_* must be inlined at build time for the client bundle.
         NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
-    container_name: disasterblock-web
+    container_name: resqlink-web
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
     ports:

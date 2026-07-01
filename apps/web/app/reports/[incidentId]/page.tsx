@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import DynamicReportForm from "@/components/DynamicReportForm";
+import ResourceForm from "@/components/ResourceForm";
 import ReportList from "@/components/ReportList";
 import { api } from "@/lib/api";
 import type {
@@ -83,6 +84,9 @@ export default function ReportsPage() {
             defaultCenter={center ?? undefined}
             onSubmitted={loadReports}
           />
+
+          <h2 className="db-section-title mb-3 mt-6">我可以幫忙（志工 / 物資）</h2>
+          <ResourceForm incidentId={incidentId} />
         </div>
 
         <div>

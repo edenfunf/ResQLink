@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://disasterblock.dev/schemas/disaster-report.schema.json",
+  "$id": "https://resqlink.dev/schemas/disaster-report.schema.json",
   "title": "DisasterReport (Input + Output)",
   "description": "Citizen disaster report. Input: POST /v1/incidents/{id}/reports. Output: GET /v1/reports/{id}. lat/lon must be supplied together.",
   "type": "object",
@@ -18,7 +18,7 @@
     },
     "need_type": {
       "type": "string",
-      "enum": ["flooding", "mud_removal", "road_blocked", "trapped_person", "medical_need", "supply_need", "other"]
+      "enum": ["flooding", "mud_removal", "road_blocked", "power_outage", "building_collapse", "fire", "gas_leak", "trapped_person", "missing_person", "medical_need", "supply_need", "other"]
     },
     "description": { "type": "string", "minLength": 1 },
     "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"], "default": "medium" },
@@ -27,6 +27,7 @@
     "address": { "type": ["string", "null"] },
     "status": { "type": "string", "enum": ["new", "triaged", "in_progress", "resolved", "archived"], "readOnly": true },
     "verification_status": { "type": "string", "enum": ["unverified", "verified", "rejected"], "readOnly": true },
+    "triage_priority": { "type": "string", "enum": ["critical", "high", "normal", "low"], "readOnly": true, "description": "送出時自動分流；可用 retriage 重算。" },
     "raw_payload": { "type": "object", "description": "完整保留的原始提交資料。", "readOnly": true },
     "created_at": { "type": "string", "format": "date-time", "readOnly": true },
     "updated_at": { "type": "string", "format": "date-time", "readOnly": true }

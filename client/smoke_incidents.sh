@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DisasterBlock smoke test: health, create/list/get incident, outbox.
+# 災鏈 ResQLink smoke test: health, create/list/get incident, outbox.
 #
 # Usage:   bash client/smoke_incidents.sh
 # Env:     BASE_URL (default http://localhost:8000). jq optional.
