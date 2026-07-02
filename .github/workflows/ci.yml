@@ -18,7 +18,9 @@ jobs:
         run: bash scripts/wait_for_api.sh
 
       - name: Run pytest
-        run: docker compose exec -T api pytest -q
+        # the review-gate tests assume the human approval flow, so demo
+        # auto-approve must be off in CI
+        run: docker compose exec -T -e DEMO_AUTO_APPROVE=false api pytest -q
 
       - name: Tear down
         if: always()
