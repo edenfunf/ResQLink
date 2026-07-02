@@ -33,3 +33,7 @@ secrets/*
 .idea/
 *.log
 Thumbs.db
+
+# OpenNext / Cloudflare build output
+.open-next/
+.wrangler/

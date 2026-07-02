@@ -52,10 +52,17 @@ export default function AgentChat() {
   const [result, setResult] = useState<AgentExecuteResponse | null>(null);
   const [deliverables, setDeliverables] = useState<DeliverableItem[] | null>(null);
   const [showModules, setShowModules] = useState(false);
+  // parallel-generation animation: the modules being generated + all-done flash
+  const [genMods, setGenMods] = useState<ModuleProposal[]>([]);
+  const [genDone, setGenDone] = useState(false);
   const [ready, setReady] = useState(false);
   const resultRef = useRef<HTMLDivElement | null>(null);
 
   const proposals = plan?.proposals ?? [];
+  // runnable now vs. the rest of the capability map (built-in services /
+  // roadmap blocks); older persisted plans lack the flag → treat as runnable
+  const runnable = proposals.filter((p) => p.executable !== false);
+  const extras = proposals.filter((p) => p.executable === false);
   const byId = useMemo(() => {
     const m = new Map<string, ModuleProposal>();
     proposals.forEach((p) => m.set(p.id, p));
@@ -161,20 +168,33 @@ export default function AgentChat() {
     });
   }
   const selectRecommended = () =>
-    setSelected(new Set(proposals.filter((p) => p.recommended).map((p) => p.id)));
-  const selectAll = () => setSelected(new Set(proposals.map((p) => p.id)));
+    setSelected(new Set(runnable.filter((p) => p.recommended).map((p) => p.id)));
+  const selectAll = () => setSelected(new Set(runnable.map((p) => p.id)));
   const selectNone = () => setSelected(new Set());
 
   async function handleExecute() {
     if (!plan || selected.size === 0) return;
+    setGenMods(runnable.filter((p) => selected.has(p.id)));
+    setGenDone(false);
     setExecuting(true);
     setError(null);
     try {
+      // floor keeps the parallel-generation animation readable even when the
+      // backend answers fast; bars then snap to done together.
       const [res] = await Promise.all([
         api.agentExecute(plan.incident.id, Array.from(selected)),
-        sleep(650),
+        sleep(2400),
       ]);
+      setGenDone(true);
+      await sleep(800);
       setResult(res);
+      // demo mode: populate the incident with citizen reports + resources so the
+      // generated rescue site / backends have rich data to show immediately.
+      try {
+        await api.seedDemoActivity(plan.incident.id);
+      } catch {
+        /* best-effort demo seeding */
+      }
       try {
         const d = await api.getDeliverables(plan.incident.id);
         setDeliverables(d.items);
@@ -309,7 +329,7 @@ export default function AgentChat() {
           ) : null}
 
           <div className="mt-4 flex items-center justify-between">
-            <span className="db-eyebrow">建議模組（{selected.size} / {proposals.length} 已選）</span>
+            <span className="db-eyebrow">建議模組（{selected.size} / {runnable.length} 已選）</span>
             <div className="flex gap-2 text-xs">
               <button type="button" onClick={selectRecommended} className="text-stone-500 hover:text-[#8c3b2e]">只選建議</button>
               <button type="button" onClick={selectAll} className="text-stone-500 hover:text-[#8c3b2e]">全選</button>
@@ -318,7 +338,7 @@ export default function AgentChat() {
           </div>
 
           <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-            {proposals.map((p, idx) => {
+            {runnable.map((p, idx) => {
               const checked = selected.has(p.id);
               return (
                 <label
@@ -352,6 +372,44 @@ export default function AgentChat() {
             })}
           </div>
 
+          {/* the rest of the capability map — built-in services + roadmap */}
+          {extras.length > 0 ? (
+            <div className="mt-5 rounded-xl border border-dashed border-stone-300 bg-stone-50/50 p-3.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-1">
+                <span className="db-eyebrow">Agent 同時掌握的能力（{extras.length}）</span>
+                <span className="text-[11px] text-stone-400">
+                  服務型能力已內建運行；規劃中積木為路線圖，實作後即可勾選生成
+                </span>
+              </div>
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {extras.map((p) => (
+                  <span
+                    key={p.id}
+                    title={`${p.category_label}｜${p.reason}`}
+                    className="inline-flex cursor-help items-center gap-1.5 rounded-full border bg-white px-2.5 py-1 text-[11px] text-stone-600"
+                    style={
+                      p.implemented
+                        ? { borderColor: "#cdd3bc" }
+                        : { borderColor: "#e0d9cc", borderStyle: "dashed", color: "#8a8275" }
+                    }
+                  >
+                    {p.name}
+                    <span
+                      className="rounded px-1 py-px text-[9.5px] font-semibold"
+                      style={
+                        p.implemented
+                          ? { background: "#e7ebdd", color: "#4f5b3c" }
+                          : { background: "#f3efe7", color: "#a89e8e" }
+                      }
+                    >
+                      {p.implemented ? "內建服務" : "規劃中"}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={handleExecute}
@@ -366,6 +424,35 @@ export default function AgentChat() {
               `平行生成選定的 ${selected.size} 個模組`
             )}
           </button>
+        </div>
+      ) : null}
+
+      {/* parallel generation animation */}
+      {executing && !result && genMods.length > 0 ? (
+        <div className="db-card db-reveal p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span className="db-eyebrow">Parallel Generation</span>
+              <h3 className="font-display mt-1 text-lg font-semibold text-stone-900">
+                Agent 正在平行生成 {genMods.length} 個模組
+              </h3>
+            </div>
+            {genDone ? (
+              <span className="db-pop text-sm font-semibold text-[#4a6139]">全部完成 ✓</span>
+            ) : (
+              <span className="flex items-center gap-2 text-xs text-stone-400">
+                <span className="db-spinner h-3.5 w-3.5" /> 各模組獨立執行、失敗隔離
+              </span>
+            )}
+          </div>
+          <div className="mt-4 grid gap-x-8 gap-y-3.5 sm:grid-cols-2">
+            {genMods.map((m, i) => (
+              <GenRow key={m.id} name={m.name} idx={i} done={genDone} />
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] leading-relaxed text-stone-400">
+            產出一律為「待審核」，通過審核閘門後才對外顯示。
+          </p>
         </div>
       ) : null}
 
@@ -397,7 +484,7 @@ export default function AgentChat() {
             ) : null}
 
             <p className="mt-4 text-xs leading-relaxed text-stone-400">
-              所有產出皆為「待審核」狀態。請從各成果的「後台」逐一審核，通過後前台才會對外顯示——
+              所有產出皆為「待審核」狀態。請從各成果的「後台」逐一審核，通過後前台才會對外顯示；
               Agent 不會繞過審核閘門。
             </p>
 
@@ -436,6 +523,37 @@ export default function AgentChat() {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** One row in the parallel-generation animation: staggered start, a progress
+ * bar that ramps then crawls, snapping to full + ✓ when the batch resolves. */
+function GenRow({ name, idx, done }: { name: string; idx: number; done: boolean }) {
+  const dur = 1.8 + ((idx * 7) % 5) * 0.45; // pseudo-random 1.8s–3.6s per module
+  const delay = idx * 0.14;
+  return (
+    <div className="db-pop" style={{ animationDelay: `${idx * 60}ms` }}>
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="truncate font-medium text-stone-700">{name}</span>
+        {done ? (
+          <span className="db-pop shrink-0 font-semibold text-[#4a6139]">✓ 完成</span>
+        ) : (
+          <span className="db-genpulse shrink-0 text-stone-400" style={{ animationDelay: `${delay}s` }}>
+            生成中…
+          </span>
+        )}
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone-200/70">
+        {done ? (
+          <span className="block h-full w-full rounded-full bg-[#566246]" />
+        ) : (
+          <span
+            className="db-genbar block h-full w-full rounded-full bg-[#8c3b2e]"
+            style={{ "--gen-dur": `${dur}s`, "--gen-delay": `${delay}s` } as React.CSSProperties}
+          />
+        )}
+      </div>
     </div>
   );
 }

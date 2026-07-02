@@ -35,6 +35,9 @@ class ModuleProposal(BaseModel):
     recommended: bool
     reason: str
     already_generated: bool
+    implemented: bool = True
+    # False for built-in services / roadmap blocks that bootstrap cannot run
+    executable: bool = True
 
 
 class AgentPlanResponse(BaseModel):

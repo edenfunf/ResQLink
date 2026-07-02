@@ -21,6 +21,7 @@ const SUPPLY_TYPES: ArtifactType[] = [
   "supply_form",
   "supply_donation_form",
   "supply_dashboard",
+  "donation_ledger",
 ];
 
 const OFFER_STATUS: Record<string, { t: string; fg: string; bg: string }> = {
@@ -159,7 +160,7 @@ export default function SupplyAdminPage() {
         ) : (
           <>
             <p className="mt-4 text-xs leading-relaxed text-stone-400">
-              審核通過的物資元件才會對外顯示於救災網站——審核就是上線閘門。
+              審核通過的物資元件才會對外顯示於救災網站；審核就是上線閘門。
             </p>
             <div className="mt-3 space-y-3">
               {blocks.map((b) => (

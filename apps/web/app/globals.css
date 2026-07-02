@@ -183,6 +183,16 @@
     transform-origin: left;
     animation: dbBarGrow 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
+  /* parallel-generation progress: ramps fast then crawls near the end until
+     the real API call resolves */
+  .db-genbar {
+    transform-origin: left;
+    animation: dbGenGrow var(--gen-dur, 2.6s) cubic-bezier(0.3, 0.6, 0.3, 1) both;
+    animation-delay: var(--gen-delay, 0s);
+  }
+  .db-genpulse {
+    animation: dbGenPulse 1.1s ease-in-out infinite;
+  }
 }
 
 @keyframes dbFadeUp {
@@ -223,11 +233,33 @@
     transform: scaleX(1);
   }
 }
+@keyframes dbGenGrow {
+  0% {
+    transform: scaleX(0);
+  }
+  55% {
+    transform: scaleX(0.68);
+  }
+  100% {
+    transform: scaleX(0.92);
+  }
+}
+@keyframes dbGenPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .db-reveal,
   .db-pop,
   .db-bargrow,
+  .db-genbar,
+  .db-genpulse,
   .db-skeleton::after,
   .db-spinner {
     animation: none !important;

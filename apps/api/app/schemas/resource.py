@@ -55,6 +55,8 @@ class ResourceOfferItem(BaseModel):
     item: str
     quantity: int | None = None
     provider_name: str | None = None
+    lat: float | None = None
+    lon: float | None = None
     address: str | None = None
     available_time: str | None = None
     status: OfferStatus

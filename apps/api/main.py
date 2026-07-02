@@ -13,9 +13,11 @@ from app.routers import (
     alerts,
     artifacts,
     assignments,
+    assistant,
     bootstrap,
     connectors,
     deliverables,
+    demo,
     form_submissions,
     health,
     incidents,
@@ -38,15 +40,12 @@ app = FastAPI(
     description="堰塞湖災害通報與救災入口生成元件。",
 )
 
+# Origins come from CORS_ORIGINS ("*" allows any origin; the CORS spec then
+# forbids credentials, which this API does not use anyway).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"] if settings.cors_allow_all else settings.cors_origins_list,
+    allow_credentials=not settings.cors_allow_all,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -68,6 +67,8 @@ app.include_router(publications.router)
 app.include_router(preview.router)
 app.include_router(summary.router)
 app.include_router(deliverables.router)
+app.include_router(demo.router)
+app.include_router(assistant.router)
 app.include_router(timeline.router)
 app.include_router(overview.router)
 

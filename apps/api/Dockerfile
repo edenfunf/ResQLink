@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 8000
 
 # Migrations are idempotent, so running them on every start is safe.
-CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+# PORT is honoured for managed hosts (Render sets it); defaults to 8000 locally.
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

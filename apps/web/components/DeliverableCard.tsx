@@ -52,6 +52,13 @@ function Icon({ name, color }: { name: string; color: string }) {
           <path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 6.2a3 3 0 0 1 0 5.6M20.5 20a5.5 5.5 0 0 0-4-5.3" />
         </svg>
       );
+    case "doc":
+      return (
+        <svg {...common}>
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
+          <path d="M14 3v5h5M9 13h6M9 17h6" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>

@@ -62,12 +62,21 @@ def test_plan_unknown_falls_back_to_generic():
     assert CORE_MODULE_IDS.issubset(ids)
 
 
-def test_plan_proposals_only_include_executable_generators():
+def test_plan_marks_only_executable_generators_runnable():
+    """Proposals now include the whole capability map; only implemented
+    generator modules are flagged executable (i.e. selectable to run)."""
     plan = _plan("地震災害")
-    types = {p["module_type"] for p in plan["proposals"]}
-    assert types == {"generator"}
-    ids = {p["id"] for p in plan["proposals"]}
-    assert "needs_matching_engine" not in ids  # not implemented => not proposed
+    runnable = [p for p in plan["proposals"] if p["executable"]]
+    assert runnable, "plan must offer runnable modules"
+    assert {p["module_type"] for p in runnable} == {"generator"}
+    assert all(p["implemented"] for p in runnable)
+
+    by_id = {p["id"]: p for p in plan["proposals"]}
+    # built-in services and roadmap blocks are surfaced but not runnable
+    assert by_id["needs_matching_engine"]["executable"] is False
+    assert by_id["needs_matching_engine"]["implemented"] is True
+    roadmap = [p for p in plan["proposals"] if not p["implemented"]]
+    assert roadmap and all(not p["executable"] for p in roadmap)
 
 
 def test_plan_then_execute_generates_only_selected():

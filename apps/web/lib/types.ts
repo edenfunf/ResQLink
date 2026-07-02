@@ -41,7 +41,36 @@ export type ArtifactType =
   | "supply_dashboard"
   | "shelter_map"
   | "hazard_zone_layer"
-  | "clarification_notice";
+  | "clarification_notice"
+  | "multilingual_notice"
+  | "accessibility_notice"
+  | "sms_alert_draft"
+  | "radio_script"
+  | "school_closure_notice"
+  | "field_survey_form"
+  | "medical_priority_roster"
+  | "missing_person_board"
+  | "pet_rescue_form"
+  | "psych_support_booking"
+  | "ig_info_card"
+  | "line_rich_menu"
+  | "media_kit"
+  | "community_group_pack"
+  | "press_conference_brief"
+  | "volunteer_shift_schedule"
+  | "volunteer_insurance_roster"
+  | "skill_certification_registry"
+  | "corporate_volunteer_pack"
+  | "donation_ledger"
+  | "cross_region_mutual_aid"
+  | "evacuation_route_plan"
+  | "flood_depth_layer"
+  | "resource_poi_map"
+  | "official_source_links"
+  | "daily_sitrep"
+  | "eoc_meeting_brief"
+  | "damage_subsidy_helper"
+  | "after_action_review";
 
 export type NeedType =
   | "flooding"
@@ -251,6 +280,13 @@ export interface PublicPreviewResponse {
   };
 }
 
+// ── Site assistant ────────────────────────────────────────────
+export interface AssistantChatResponse {
+  reply: string;
+  mode: "ai" | "kb";
+  suggestions: string[];
+}
+
 export interface HealthResponse {
   status: string;
   service: string;
@@ -334,6 +370,9 @@ export interface ModuleProposal {
   recommended: boolean;
   reason: string;
   already_generated: boolean;
+  /** absent in older persisted plans — treat undefined as true */
+  implemented?: boolean;
+  executable?: boolean;
 }
 
 export interface AgentPlanResponse {
@@ -419,6 +458,8 @@ export interface ResourceOfferItem {
   item: string;
   quantity?: number | null;
   provider_name?: string | null;
+  lat?: number | null;
+  lon?: number | null;
   address?: string | null;
   available_time?: string | null;
   status: OfferStatus;

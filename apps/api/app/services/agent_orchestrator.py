@@ -153,10 +153,44 @@ def plan(
                 "recommended": recommended,
                 "reason": _reason_for(spec, recommended),
                 "already_generated": spec.id in existing,
+                "implemented": True,
+                "executable": True,
             }
         )
-    # recommended first, otherwise keep registry order
-    proposals.sort(key=lambda p: (not p["recommended"],))
+
+    # surface the rest of the capability map too — built-in services and
+    # roadmap blocks — so the plan shows everything the agent "knows",
+    # not just what bootstrap can run today.
+    candidate_ids = {p["id"] for p in proposals}
+    for spec in registry.for_scenario(incident.scenario_type):
+        if spec.id in candidate_ids:
+            continue
+        if spec.implemented:
+            reason = "已內建的服務能力，於背景持續運行，無需生成。"
+        else:
+            reason = "規劃中的積木：規格已定義，實作後即可由 Agent 一鍵生成。"
+        proposals.append(
+            {
+                "id": spec.id,
+                "name": spec.name,
+                "description": spec.description,
+                "category": spec.category,
+                "category_label": CATEGORIES.get(spec.category, spec.category),
+                "module_type": spec.module_type,
+                "risk_level": spec.risk_for(incident.severity),
+                "requires_review": spec.requires_review,
+                "recommended": False,
+                "reason": reason,
+                "already_generated": False,
+                "implemented": spec.implemented,
+                "executable": False,
+            }
+        )
+
+    # runnable first (recommended on top), then built-in services, then roadmap
+    proposals.sort(
+        key=lambda p: (not p["executable"], not p["implemented"], not p["recommended"])
+    )
 
     ai_enabled = ai_agent.is_enabled()
     if intent_mode != "existing":

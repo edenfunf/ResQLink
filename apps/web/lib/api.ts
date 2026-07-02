@@ -3,6 +3,7 @@
 import type {
   AgentExecuteResponse,
   AgentPlanResponse,
+  AssistantChatResponse,
   AssignmentItem,
   AssignmentListResponse,
   AssignmentStatus,
@@ -119,6 +120,20 @@ export const api = {
 
   getDeliverables: (id: string) =>
     request<DeliverablesResponse>(`/v1/incidents/${id}/deliverables`),
+
+  // site assistant: Q&A about the system itself
+  assistantChat: (message: string, history: { role: string; content: string }[]) =>
+    request<AssistantChatResponse>(`/v1/assistant/chat`, {
+      method: "POST",
+      body: JSON.stringify({ message, history }),
+    }),
+
+  // demo mode: seed fake citizen reports + resource offers for an incident
+  seedDemoActivity: (id: string, force = false) =>
+    request<Record<string, unknown>>(
+      `/v1/incidents/${id}/demo-activity${force ? "?force=true" : ""}`,
+      { method: "POST" }
+    ),
 
   bootstrapIncident: (id: string, useAi = false) =>
     request<BootstrapResponse>(

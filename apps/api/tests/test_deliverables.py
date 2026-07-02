@@ -49,13 +49,14 @@ def test_deliverables_all_empty_before_bootstrap():
     data = _deliverables(iid)
     assert data["incident_id"] == iid
     items = _by_key(data["items"])
-    # the five fixed outcomes are always returned
+    # the six fixed outcomes are always returned
     assert set(items) == {
         "rescue_site",
         "fb_page",
         "line_channel",
         "supply_ops",
         "volunteer_ops",
+        "eoc_ops",
     }
     for it in items.values():
         assert it["status"] == "empty"
@@ -63,7 +64,7 @@ def test_deliverables_all_empty_before_bootstrap():
 
     # front/admin URLs are resolved for this incident
     assert items["rescue_site"]["front"]["url"] == f"/preview/{slug}"
-    assert items["rescue_site"]["admin"]["url"] == f"/incidents/{iid}"
+    assert items["rescue_site"]["admin"]["url"] == f"/incidents/{iid}/site"
     assert items["fb_page"]["admin"]["url"] == f"/incidents/{iid}/fb"
     assert items["fb_page"]["front"]["kind"] == "external_pending"
 

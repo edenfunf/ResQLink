@@ -22,6 +22,10 @@ const VOLUNTEER_TYPES: ArtifactType[] = [
   "volunteer_form",
   "volunteer_recruit_post",
   "volunteer_checkin",
+  "volunteer_shift_schedule",
+  "volunteer_insurance_roster",
+  "skill_certification_registry",
+  "corporate_volunteer_pack",
 ];
 
 const OFFER_STATUS: Record<string, { t: string; fg: string; bg: string }> = {
@@ -168,7 +172,7 @@ export default function VolunteerAdminPage() {
         ) : (
           <>
             <p className="mt-4 text-xs leading-relaxed text-stone-400">
-              審核通過的志工元件才會對外顯示——審核就是上線閘門。
+              審核通過的志工元件才會對外顯示；審核就是上線閘門。
             </p>
             <div className="mt-3 space-y-3">
               {blocks.map((b) => (

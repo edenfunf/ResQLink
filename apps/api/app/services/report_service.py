@@ -174,6 +174,7 @@ def to_geojson(
                 "status": report.status,
                 "verification_status": report.verification_status,
                 "address": report.address,
+                "description": report.description,
                 "created_at": report.created_at.isoformat(),
             },
         )

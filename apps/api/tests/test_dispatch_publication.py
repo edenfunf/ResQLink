@@ -214,11 +214,15 @@ def test_publish_missing_artifact_404():
     assert resp.status_code == 404
 
 
-# ── catalogue: all roadmap modules now live ────────────────────
-def test_all_modules_implemented():
+# ── catalogue: services live, roadmap blocks catalogued ───────
+def test_service_modules_implemented_and_roadmap_catalogued():
     items = client.get("/v1/modules").json()["items"]
-    assert all(m["implemented"] for m in items)
     by_id = {m["id"]: m for m in items}
     assert by_id["volunteer_dispatch"]["implemented"] is True
     assert by_id["fb_publish_action"]["implemented"] is True
     assert by_id["line_broadcast_action"]["implemented"] is True
+    # the catalogue doubles as the roadmap: planned blocks are listed
+    # but explicitly not implemented (and never executable via bootstrap)
+    planned = [m for m in items if not m["implemented"]]
+    assert planned
+    assert all(m["module_type"] in ("processor", "action") for m in planned)

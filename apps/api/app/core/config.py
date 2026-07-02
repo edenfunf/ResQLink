@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +8,15 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+psycopg://resqlink:resqlink@db:5432/resqlink"
     )
+
+    # Comma-separated allowed CORS origins, or "*" for any origin
+    # (credentials are disabled automatically in that case). Managed hosts
+    # like Render / Cloudflare assign their own domains, so this is settable.
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,http://127.0.0.1:3000,"
+        "http://localhost:3001,http://127.0.0.1:3001"
+    )
+
     APP_NAME: str = "災鏈 ResQLink API"
     APP_VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
@@ -47,6 +57,25 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def _normalize_db_url(cls, v: str) -> str:
+        """Managed Postgres (e.g. Render) hands out postgres:// URLs; SQLAlchemy
+        needs the psycopg driver spelled out."""
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+psycopg://", 1)
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+psycopg://", 1)
+        return v
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
+    @property
+    def cors_allow_all(self) -> bool:
+        return self.CORS_ORIGINS.strip() == "*"
 
 
 settings = Settings()

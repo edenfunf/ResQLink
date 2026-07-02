@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { api } from "@/lib/api";
+import { useViewParam } from "@/lib/useViewParam";
 import type {
   ArtifactType,
   IncidentDetail,
@@ -13,7 +14,7 @@ import type {
 } from "@/lib/types";
 
 const ACCENT = "#3a7d44";
-const LINE_TYPES: ArtifactType[] = ["line_broadcast"];
+const LINE_TYPES: ArtifactType[] = ["line_broadcast", "line_rich_menu"];
 
 type Broadcast = {
   id: string;
@@ -32,17 +33,8 @@ export default function LineAdminPage() {
   const [items, setItems] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<"manage" | "preview">("manage");
+  const [view, setView] = useViewParam<"manage" | "preview">("manage", ["manage", "preview"]);
   const [busy, setBusy] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("view") === "preview"
-    ) {
-      setView("preview");
-    }
-  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import DemoLauncher from "./DemoLauncher";
+import SiteAssistant from "./SiteAssistant";
 
 const NAV = [
   { href: "/console", label: "管理台" },
@@ -93,7 +93,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </p>
       </footer>
 
-      <DemoLauncher />
+      <SiteAssistant />
     </div>
   );
 }
