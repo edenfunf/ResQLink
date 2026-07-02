@@ -40,9 +40,24 @@ import type {
   TimelineResponse,
 } from "./types";
 
-export const API_BASE = (
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
-).replace(/\/$/, "");
+// API base resolution, in order:
+// 1. NEXT_PUBLIC_API_BASE_URL baked in at build time
+// 2. convention on deployed hosts: api.<same-domain> (e.g. edenshu.uk → api.edenshu.uk)
+// 3. local dev fallback
+function resolveApiBase(): string {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host !== "localhost" && host !== "127.0.0.1") {
+      return `${window.location.protocol}//api.${host.replace(/^www\./, "")}`;
+    }
+  }
+  return "http://localhost:8000";
+}
+
+export const API_BASE = resolveApiBase().replace(/\/$/, "");
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
