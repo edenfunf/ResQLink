@@ -7,8 +7,10 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# NEXT_PUBLIC_* is inlined into the client bundle at build time, so it must be set here.
-ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+# NEXT_PUBLIC_* is inlined into the client bundle at build time. Default is
+# EMPTY so the runtime api.<host> fallback in lib/api.ts survives compilation;
+# pass the build arg only when you want a fixed API origin baked in.
+ARG NEXT_PUBLIC_API_BASE_URL=""
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_OUTPUT=standalone
