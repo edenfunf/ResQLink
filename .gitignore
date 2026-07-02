@@ -37,3 +37,4 @@ Thumbs.db
 # OpenNext / Cloudflare build output
 .open-next/
 .wrangler/
+tsconfig.tsbuildinfo

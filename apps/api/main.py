@@ -48,6 +48,7 @@ app.add_middleware(
     allow_credentials=not settings.cors_allow_all,
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=86400,  # cache preflights; cross-origin POSTs then pay it once
 )
 
 app.include_router(health.router)

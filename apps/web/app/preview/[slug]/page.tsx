@@ -88,25 +88,30 @@ export default function PublicRescueSite() {
         if (!alive) return;
         setData(res);
         const id = res.incident.id;
-        // demo mode: make sure the incident has activity before reading it
+        const fetchAll = async () => {
+          const [gj, sm, rs, asg, mt] = await Promise.allSettled([
+            api.getReportsGeoJSON(id),
+            api.getIncidentSummary(id),
+            api.listResources(id),
+            api.listAssignments(id),
+            api.getMatches(id),
+          ]);
+          if (!alive) return;
+          if (gj.status === "fulfilled") setGeojson(gj.value);
+          if (sm.status === "fulfilled") setSummary(sm.value);
+          if (rs.status === "fulfilled") setResources(rs.value.items);
+          if (asg.status === "fulfilled") setAssignments(asg.value.items);
+          if (mt.status === "fulfilled") setMatches(mt.value);
+        };
+        // show existing data immediately; demo-seeding runs after and only
+        // refreshes when it actually populated an empty incident
+        await fetchAll();
         try {
-          await api.seedDemoActivity(id);
+          const seeded = await api.seedDemoActivity(id);
+          if ((seeded as { seeded?: boolean }).seeded) await fetchAll();
         } catch {
           /* best-effort */
         }
-        const [gj, sm, rs, asg, mt] = await Promise.allSettled([
-          api.getReportsGeoJSON(id),
-          api.getIncidentSummary(id),
-          api.listResources(id),
-          api.listAssignments(id),
-          api.getMatches(id),
-        ]);
-        if (!alive) return;
-        if (gj.status === "fulfilled") setGeojson(gj.value);
-        if (sm.status === "fulfilled") setSummary(sm.value);
-        if (rs.status === "fulfilled") setResources(rs.value.items);
-        if (asg.status === "fulfilled") setAssignments(asg.value.items);
-        if (mt.status === "fulfilled") setMatches(mt.value);
       })
       .catch((e) => alive && setError((e as Error).message))
       .finally(() => alive && setLoading(false));

@@ -62,12 +62,18 @@ export const API_BASE = resolveApiBase().replace(/\/$/, "");
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
+    // Only send Content-Type when there is a body: bare GETs then count as
+    // CORS "simple requests" and skip the OPTIONS preflight round-trip, which
+    // matters a lot once the API is a cross-origin cloud host.
+    const headers: Record<string, string> = {
+      ...((init?.headers as Record<string, string>) || {}),
+    };
+    if (init?.body && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
     res = await fetch(`${API_BASE}${path}`, {
       ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init?.headers || {}),
-      },
+      headers,
       cache: "no-store",
     });
   } catch (err) {
