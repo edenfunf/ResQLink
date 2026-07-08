@@ -2,6 +2,12 @@
 
 [![CI](https://github.com/edenfunf/disasterblock/actions/workflows/ci.yml/badge.svg)](https://github.com/edenfunf/disasterblock/actions/workflows/ci.yml)
 
+| | |
+| --- | --- |
+| 參與競賽 | [防災積木元件創新賽：公民科技拼出韌性臺灣](https://civictech.moda.gov.tw/) |
+| 主辦單位 | 數位發展部 |
+| 競賽成績 | 🏆 **優勝** |
+
 **一句話描述災情，AI Agent 從防災積木目錄找出該用的模組，平行生成一整套救災系統。**
 
 災害初期最缺的不是工具，而是「把工具組起來的時間」。災鏈 ResQLink 把救災需要的能力
