@@ -4,8 +4,11 @@
 
 ## 1. 系統總覽
 
-災鏈 ResQLink 是一組**防災積木元件**：把堰塞湖災害事件，經過「標準化 → 生成 → 審核 → 公開 / 通報」
-的資料流，輸出成可被其他系統拼接的標準格式（Incident / Artifacts / Reports / GeoJSON / Public Preview）。
+災鏈 ResQLink 的核心是 **AI Agent 編排器＋模組註冊表**：一句自然語言的災情描述，
+由 Agent 解析成標準化事件，從 72 個模組的註冊表挑出適用的防災積木提案給人確認，
+確認後平行生成，經審核閘門輸出成可被其他系統拼接的標準格式
+（Incident / Artifacts / Reports / GeoJSON / Public Preview）。
+支援堰塞湖、地震、颱風、水災等災別，模組內容隨災種調整。
 
 三個容器（Docker Compose）：
 
@@ -19,8 +22,14 @@
 
 ```mermaid
 flowchart TD
+  U[自然語言災情描述] --> P["Agent /plan（AI 意圖解析，失敗退回關鍵字規則）"]
   A[Alert Event or Manual Input] --> B[Incident]
+  P --> B
+  B --> R["Module Registry（72 modules / 10 大方向）"]
+  R --> PR[模組提案 + 人工確認]
+  PR --> X["Agent /execute（平行生成、逐模組隔離、冪等）"]
   B --> C[Bootstrap Service]
+  X --> C
   C --> D[Generated Artifacts]
   D --> E[Review Tasks]
   E -->|Approve| F[Public Preview API]
@@ -39,8 +48,8 @@ flowchart TD
 | 能力 | 主要產物 |
 | --- | --- |
 | 事件接收與標準化 | `incidents`、`event_outbox` |
-| 生成救災元件 + 人工審核 | `generated_artifacts`、`review_tasks`、模組註冊表（27 模組） |
-| 對話式編排 | agent orchestrator（plan / execute） |
+| Agent 編排（作品核心） | agent orchestrator（plan / execute）、意圖解析（AI + 關鍵字 fallback） |
+| 生成救災元件 + 人工審核 | `generated_artifacts`、`review_tasks`、模組註冊表（72 模組：生成型 50／處理型 20／動作型 2） |
 | 民眾通報 + 自動分流 + GeoJSON + 公開 Preview | `disaster_reports`（triage）、reports.geojson、public preview |
 | 需求-資源媒合 | `resource_offers`、matching engine、`/matches` |
 | 情勢摘要 + 時間軸 + 可操作前端 | situation summary、timeline、Next.js + Leaflet |
@@ -115,11 +124,12 @@ flowchart LR
 
 - 每個模組是一份標準 `ModuleSpec`（`id / name / category / module_type / applicable_scenarios /
   default_enabled / implemented / risk / review_type / generate`），`id` 同時即 artifact_type。
-- **生成型（generator）** 模組產出可審核的草稿（表單 / 公告 / 貼文 / 地圖設定）；
-  **動作型（action）** 與 **處理型（processor）** 模組登錄在目錄中但標 `implemented=False`，
-  作為 connector / worker 的接點與路線圖，不假裝已存在。
+- 目前共 **72 個模組**：**生成型（generator）50 個**，全部可由 Agent／bootstrap 直接生成
+  可審核的草稿（表單 / 公告 / 貼文 / 地圖設定）；**處理型（processor）20 個**與
+  **動作型（action）2 個**，已實作者登記其服務端點（如媒合引擎、triage、派工、對外發布），
+  規劃中的標 `implemented=False` 作為路線圖，不假裝已存在。合計已實作 57、規劃中 15。
 - 模組依十個大方向（資訊匯流、通報、求援、擴散、志工、物資、媒合、地理態勢、查證、協調）分類，
-  可由 `GET /v1/modules` 查詢。
+  可由 `GET /v1/modules` 查詢，前端 `/console/modules` 提供完整能力地圖。
 
 **多災種**：各災別的需求類型、物資品項、志工技能與用語收進
 [`scenarios.py`](../apps/api/app/modules/scenarios.py) 的 `ScenarioProfile`。同一個模組對堰塞湖、
