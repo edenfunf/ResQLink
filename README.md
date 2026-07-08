@@ -1,6 +1,6 @@
 # 災鏈 ResQLink
 
-[![CI](https://github.com/edenfunf/disasterblock/actions/workflows/ci.yml/badge.svg)](https://github.com/edenfunf/disasterblock/actions/workflows/ci.yml)
+[![CI](https://github.com/edenfunf/ResQLink/actions/workflows/ci.yml/badge.svg)](https://github.com/edenfunf/ResQLink/actions/workflows/ci.yml)
 
 | 參與競賽 | [防災積木元件創新賽：公民科技拼出韌性臺灣](https://civictech.moda.gov.tw/) |
 | --- | --- |
