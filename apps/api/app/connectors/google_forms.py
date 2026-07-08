@@ -12,8 +12,12 @@ the simulated path works) even if those libraries are absent.
 """
 from __future__ import annotations
 
+import logging
+
 from app.connectors.base import ConnectorError
 from app.core.config import settings
+
+logger = logging.getLogger("resqlink.google_forms")
 
 CONNECTOR_NAME = "google_forms"
 
@@ -132,5 +136,6 @@ def _maybe_share(creds, form_id: str) -> None:
             sendNotificationEmail=False,
         ).execute()
     except Exception:
-        # sharing is non-fatal — the form already exists and is usable
-        pass
+        # sharing is non-fatal (the form already exists and is usable), but the
+        # failure must not vanish silently
+        logger.warning("Sharing Google Form %s with %s failed", form_id, email, exc_info=True)

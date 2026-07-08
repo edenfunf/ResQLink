@@ -24,7 +24,10 @@ export default function ConsolePage() {
         setIncidents(list.items);
         setOverview(ov);
       })
-      .catch((e) => setError((e as Error).message))
+      .catch((e) => {
+        console.error(e); // detail stays in devtools; UI gets a generic line
+        setError("資料載入失敗，請確認後端服務後再重新整理。");
+      })
       .finally(() => setLoading(false));
   }, []);
 

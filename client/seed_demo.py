@@ -24,7 +24,9 @@ import urllib.request
 API = os.environ.get("API_BASE_URL", "http://localhost:8000").rstrip("/")
 WEB = os.environ.get("WEB_BASE_URL", "http://localhost:3001").rstrip("/")
 
-random.seed(20260702)  # deterministic runs
+# OS-entropy CSPRNG: values are demo content only, but SystemRandom keeps
+# this script free of statistical-PRNG usage.
+_rng = random.SystemRandom()
 
 
 def _req(method: str, path: str, payload=None):
@@ -136,11 +138,11 @@ DESC = {
 
 
 def phone():
-    return "09" + "".join(random.choice("0123456789") for _ in range(8))
+    return "09" + "".join(_rng.choice("0123456789") for _ in range(8))
 
 
 def jitter(v, d=0.02):
-    return round(v + random.uniform(-d, d), 5)
+    return round(v + _rng.uniform(-d, d), 5)
 
 
 def seed_incident(spec) -> dict:
@@ -153,7 +155,7 @@ def seed_incident(spec) -> dict:
         "location": loc,
         "source_refs": [{
             "source_name": "demo_seed",
-            "source_ref": f"mock://{spec['event_type']}-{random.randint(1000, 9999)}",
+            "source_ref": f"mock://{spec['event_type']}-{_rng.randint(1000, 9999)}",
             "fetched_at": "2026-07-02T08:00:00+08:00",
         }],
     }
@@ -161,7 +163,8 @@ def seed_incident(spec) -> dict:
     iid = created.get("incident_id")
     slug = created.get("slug")
     if not iid:
-        print(f"  ! failed to create incident: {created}")
+        # keep the console output free of raw API error bodies / env values
+        print(f"  ! failed to create incident: {spec['title']}（請查 API 日誌）")
         return {}
 
     # generate every deliverable's modules (skip any not executable)
@@ -172,14 +175,14 @@ def seed_incident(spec) -> dict:
             gen += 1
 
     # citizen reports (varied need types, geo-jittered around the incident)
-    n_reports = random.randint(8, 12)
+    n_reports = _rng.randint(8, 12)
     for _ in range(n_reports):
-        need = random.choice(spec["needs"])
-        sev = random.choices(["critical", "high", "medium", "low"],
+        need = _rng.choice(spec["needs"])
+        sev = _rng.choices(["critical", "high", "medium", "low"],
                              weights=[2, 4, 3, 1])[0]
-        has_geo = random.random() < 0.85
+        has_geo = _rng.random() < 0.85
         payload = {
-            "reporter_name": random.choice(NAMES),
+            "reporter_name": _rng.choice(NAMES),
             "reporter_contact": phone(),
             "need_type": need,
             "description": DESC.get(need, "災情通報"),
@@ -192,33 +195,33 @@ def seed_incident(spec) -> dict:
         post(f"/v1/incidents/{iid}/reports", payload)
 
     # supply offers
-    n_supply = random.randint(5, 8)
+    n_supply = _rng.randint(5, 8)
     for _ in range(n_supply):
         post(f"/v1/incidents/{iid}/resources", {
             "offer_type": "supply",
-            "item": random.choice(SUPPLY_ITEMS),
-            "quantity": random.choice([50, 100, 150, 200, 300, 500]),
-            "provider_name": random.choice(PROVIDERS),
+            "item": _rng.choice(SUPPLY_ITEMS),
+            "quantity": _rng.choice([50, 100, 150, 200, 300, 500]),
+            "provider_name": _rng.choice(PROVIDERS),
             "provider_contact": phone(),
             "lat": jitter(loc["lat"]),
             "lon": jitter(loc["lon"]),
             "address": f"{loc['county']}{loc['town']}物資集散點",
-            "available_time": random.choice(AVAIL),
+            "available_time": _rng.choice(AVAIL),
         })
 
     # volunteer offers
-    n_vol = random.randint(5, 8)
+    n_vol = _rng.randint(5, 8)
     for _ in range(n_vol):
         post(f"/v1/incidents/{iid}/resources", {
             "offer_type": "volunteer",
-            "item": random.choice(VOLUNTEER_SKILLS),
-            "quantity": random.choice([3, 5, 8, 10, 15, 20]),
-            "provider_name": random.choice(PROVIDERS),
+            "item": _rng.choice(VOLUNTEER_SKILLS),
+            "quantity": _rng.choice([3, 5, 8, 10, 15, 20]),
+            "provider_name": _rng.choice(PROVIDERS),
             "provider_contact": phone(),
             "lat": jitter(loc["lat"]),
             "lon": jitter(loc["lon"]),
             "address": f"{loc['county']}{loc['town']}",
-            "available_time": random.choice(AVAIL),
+            "available_time": _rng.choice(AVAIL),
         })
 
     # dispatch a few matched report<->offer pairs
@@ -247,20 +250,21 @@ def seed_incident(spec) -> dict:
 def main():
     health = get("/v1/health")
     if health.get("status") != "ok":
-        print(f"API not reachable at {API}: {health}")
+        # generic line only: no env-derived URL or error body on the console
+        print("API not reachable. 請確認 API_BASE_URL 與後端服務狀態。")
         raise SystemExit(1)
-    print(f"==> seeding rich demo data into {API}")
+    print("==> seeding rich demo data into the configured API_BASE_URL")
 
     seeded = [s for s in (seed_incident(spec) for spec in INCIDENTS) if s]
 
     print("\n" + "=" * 60)
-    print(f" Seeded {len(seeded)} incidents. Open the console:")
-    print(f"   {WEB}/console")
+    # relative paths only（把 WEB_BASE_URL 補在前面即可開啟），避免環境變數值進 console
+    print(f" Seeded {len(seeded)} incidents. Open <WEB_BASE_URL>/console")
     print(" Per-incident (事件詳情 → 五個成果各自後台):")
     for s in seeded:
         print(f"   • {s['title']}")
-        print(f"       事件詳情 {WEB}/incidents/{s['id']}")
-        print(f"       公開網站 {WEB}/preview/{s['slug']}")
+        print(f"       事件詳情 /incidents/{s['id']}")
+        print(f"       公開網站 /preview/{s['slug']}")
     print("=" * 60)
 
 

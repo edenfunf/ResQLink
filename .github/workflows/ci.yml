@@ -8,6 +8,9 @@ jobs:
   backend-test:
     name: Backend tests (pytest)
     runs-on: ubuntu-latest
+    env:
+      # compose no longer ships a default password; CI supplies a local-only one
+      POSTGRES_PASSWORD: ci-local-postgres
     steps:
       - uses: actions/checkout@v4
 

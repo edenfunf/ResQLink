@@ -4,7 +4,9 @@ services:
     container_name: resqlink-db
     environment:
       POSTGRES_USER: resqlink
-      POSTGRES_PASSWORD: resqlink
+      # Set in .env (see .env.example); compose refuses to start without it so
+      # no credential ever lives in this file.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (see .env.example)}
       POSTGRES_DB: resqlink
     ports:
       - "5432:5432"
@@ -20,7 +22,7 @@ services:
     build: ./apps/api
     container_name: resqlink-api
     environment:
-      DATABASE_URL: postgresql+psycopg://resqlink:resqlink@db:5432/resqlink
+      DATABASE_URL: postgresql+psycopg://resqlink:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (see .env.example)}@db:5432/resqlink
       APP_NAME: 災鏈 ResQLink API
       APP_VERSION: 0.1.0
       ENVIRONMENT: development

@@ -5,9 +5,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = (
-        "postgresql+psycopg://resqlink:resqlink@db:5432/resqlink"
-    )
+    # No default on purpose: the connection string carries credentials, so it
+    # must come from the environment (docker-compose / the managed host).
+    DATABASE_URL: str
+
+    # Optional API key gate: when set, non-public endpoints require the
+    # X-API-Key header to match. Empty (default) keeps the open demo mode.
+    ADMIN_API_KEY: str = ""
 
     # Comma-separated allowed CORS origins, or "*" for any origin
     # (credentials are disabled automatically in that case). Managed hosts

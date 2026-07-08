@@ -14,19 +14,19 @@ def is_enabled() -> bool:
 
 
 def _chat(messages: list[dict], *, json_mode: bool = False, max_tokens: int = 400) -> str:
-    from openai import OpenAI
+    from openai import NOT_GIVEN, OpenAI
 
     client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    kwargs: dict = {
-        "model": settings.OPENAI_MODEL,
-        "messages": messages,
-        "temperature": 0.4,
-        "max_tokens": max_tokens,
-        "timeout": _TIMEOUT,
-    }
-    if json_mode:
-        kwargs["response_format"] = {"type": "json_object"}
-    resp = client.chat.completions.create(**kwargs)
+    # Explicit completion-token cap and request timeout on every call so a
+    # single request can neither run long nor produce unbounded output.
+    resp = client.chat.completions.create(
+        model=settings.OPENAI_MODEL,
+        messages=messages,
+        temperature=0.4,
+        max_tokens=max_tokens,
+        timeout=_TIMEOUT,
+        response_format={"type": "json_object"} if json_mode else NOT_GIVEN,
+    )
     return resp.choices[0].message.content or ""
 
 

@@ -38,3 +38,6 @@ Thumbs.db
 .open-next/
 .wrangler/
 tsconfig.tsbuildinfo
+
+# Internal AI tooling config (never ship)
+.claude/

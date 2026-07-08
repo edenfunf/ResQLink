@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import logging
 
+import hmac
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -51,6 +54,45 @@ app.add_middleware(
     max_age=86400,  # cache preflights; cross-origin POSTs then pay it once
 )
 
+# Paths that stay open even when the API-key gate is on: liveness, docs and
+# the citizen-facing public surface (preview, report/resource submission).
+_PUBLIC_PREFIXES = (
+    "/v1/health",
+    "/v1/public/",
+    "/docs",
+    "/openapi.json",
+    "/redoc",
+)
+
+
+def _is_public(path: str, method: str) -> bool:
+    if path == "/" or any(path.startswith(p) for p in _PUBLIC_PREFIXES):
+        return True
+    # citizen submissions from the generated rescue portal
+    if method == "POST" and (
+        path.endswith("/reports") or path.endswith("/resources")
+    ):
+        return True
+    if method == "GET" and path.endswith("/reports.geojson"):
+        return True
+    return False
+
+
+@app.middleware("http")
+async def api_key_gate(request: Request, call_next):
+    """Optional access control: with ADMIN_API_KEY set, every non-public
+    endpoint requires a matching X-API-Key header. Unset (demo) => open."""
+    if settings.ADMIN_API_KEY and request.method != "OPTIONS":
+        if not _is_public(request.url.path, request.method):
+            provided = request.headers.get("X-API-Key", "")
+            if not hmac.compare_digest(provided, settings.ADMIN_API_KEY):
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Missing or invalid X-API-Key."},
+                )
+    return await call_next(request)
+
+
 app.include_router(health.router)
 app.include_router(alerts.router)
 app.include_router(incidents.router)
@@ -83,6 +125,36 @@ async def sqlalchemy_exception_handler(
         status_code=500,
         content={"detail": "Internal database error."},
     )
+
+
+def _custom_openapi() -> dict:
+    """Declare the API-key scheme globally so the spec documents how access is
+    controlled (enforced by api_key_gate when ADMIN_API_KEY is configured)."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    schema.setdefault("components", {})["securitySchemes"] = {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": (
+                "設定 ADMIN_API_KEY 後，非公開端點需帶此標頭；"
+                "公開災民端點（health / public preview / 通報與資源登錄）不需要。"
+            ),
+        }
+    }
+    schema["security"] = [{"ApiKeyAuth": []}]
+    app.openapi_schema = schema
+    return app.openapi_schema
+
+
+app.openapi = _custom_openapi  # type: ignore[method-assign]
 
 
 @app.get("/", include_in_schema=False)

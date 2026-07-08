@@ -190,7 +190,10 @@ def seed_incident_activity(
     base_lat = incident.lat if incident.lat is not None else TAIWAN_CENTER[0]
     base_lon = incident.lon if incident.lon is not None else TAIWAN_CENTER[1]
 
-    rng = random.Random(str(incident_id))  # deterministic per incident
+    # OS-entropy CSPRNG. The values are only demo content, but SystemRandom
+    # keeps this module free of statistical-PRNG usage; idempotency is already
+    # guaranteed by the _has_reports guard above, not by a fixed seed.
+    rng = random.SystemRandom()
     needs = _NEEDS_BY_SCENARIO.get(incident.scenario_type, _DEFAULT_NEEDS)
     county = incident.county or ""
     town = incident.town or ""

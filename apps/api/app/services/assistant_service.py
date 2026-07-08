@@ -7,6 +7,8 @@ over the same knowledge base, so the widget always works in demos.
 """
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -75,8 +77,10 @@ def _dynamic_context(db: Session) -> str:
                 f"「{r.title}」（{r.scenario_type}，公開頁 /preview/{r.slug}）" for r in rows
             )
             lines.append(f"最近的事件：{recent}。")
-    except Exception:  # stats are best-effort
-        pass
+    except Exception:  # stats are best-effort, but log why they were skipped
+        logging.getLogger("resqlink.assistant").warning(
+            "Assistant dynamic stats unavailable", exc_info=True
+        )
     return "\n".join(lines)
 
 

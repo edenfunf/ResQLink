@@ -75,7 +75,13 @@ export default function VolunteerAdminPage() {
     (a) => a.status === "assigned" || a.status === "in_progress"
   ).length;
 
-  const frontPath = `/reports/${id}`;
+  // Allowlist validation (incident ids are UUIDs): the route param is only
+  // used when it matches the UUID shape, so the href can never carry a
+  // scheme, authority or markup — it is always a same-site /reports path.
+  const isUuid =
+    typeof id === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  const frontPath = isUuid ? `/reports/${encodeURIComponent(id)}` : "/reports";
 
   return (
     <AppShell>
