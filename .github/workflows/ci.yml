@@ -9,8 +9,9 @@ jobs:
     name: Backend tests (pytest)
     runs-on: ubuntu-latest
     env:
-      # compose no longer ships a default password; CI supplies a local-only one
-      POSTGRES_PASSWORD: ci-local-postgres
+      # Ephemeral CI database password, managed in GitHub Secrets (no literal
+      # credential in the workflow file). compose refuses to start without it.
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
